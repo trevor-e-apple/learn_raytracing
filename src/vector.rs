@@ -2,8 +2,8 @@ use std::ops;
 
 #[derive(Clone, Default, Copy)]
 pub struct Vector2 {
-    pub x: f32,
-    pub y: f32,
+    pub x: f64,
+    pub y: f64,
 }
 
 impl Vector2 {
@@ -62,7 +62,7 @@ impl ops::Sub<&Vector2> for &Vector2 {
     }
 }
 
-impl ops::Mul<Vector2> for f32 {
+impl ops::Mul<Vector2> for f64 {
     type Output = Vector2;
 
     fn mul(self, rhs: Vector2) -> Vector2 {
@@ -73,7 +73,7 @@ impl ops::Mul<Vector2> for f32 {
     }
 }
 
-impl ops::Mul<&Vector2> for f32 {
+impl ops::Mul<&Vector2> for f64 {
     type Output = Vector2;
 
     fn mul(self, rhs: &Vector2) -> Vector2 {
@@ -84,10 +84,10 @@ impl ops::Mul<&Vector2> for f32 {
     }
 }
 
-impl ops::Mul<f32> for Vector2 {
+impl ops::Mul<f64> for Vector2 {
     type Output = Vector2;
 
-    fn mul(self, rhs: f32) -> Vector2 {
+    fn mul(self, rhs: f64) -> Vector2 {
         Vector2 {
             x: self.x * rhs,
             y: self.y * rhs,
@@ -95,10 +95,10 @@ impl ops::Mul<f32> for Vector2 {
     }
 }
 
-impl ops::Mul<f32> for &Vector2 {
+impl ops::Mul<f64> for &Vector2 {
     type Output = Vector2;
 
-    fn mul(self, rhs: f32) -> Vector2 {
+    fn mul(self, rhs: f64) -> Vector2 {
         Vector2 {
             x: self.x * rhs,
             y: self.y * rhs,
@@ -107,7 +107,7 @@ impl ops::Mul<f32> for &Vector2 {
 }
 
 impl Vector2 {
-    pub fn magnitude(&self) -> f32 {
+    pub fn magnitude(&self) -> f64 {
         (self.x * self.x + self.y * self.y).sqrt()
     }
 
@@ -117,7 +117,7 @@ impl Vector2 {
         self.y = self.y * scalar;
     }
 
-    pub fn dot_product(a: &Self, b: &Self) -> f32 {
+    pub fn dot_product(a: &Self, b: &Self) -> f64 {
         a.x * b.x + a.y * b.y
     }
 }
@@ -133,9 +133,9 @@ impl Vector2i {
 
 #[derive(Clone, Default, Copy)]
 pub struct Vector3 {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
 }
 
 impl Vector3 {
@@ -204,7 +204,7 @@ impl ops::Sub<&Vector3> for &Vector3 {
     }
 }
 
-impl ops::Mul<Vector3> for f32 {
+impl ops::Mul<Vector3> for f64 {
     type Output = Vector3;
 
     fn mul(self, rhs: Vector3) -> Vector3 {
@@ -216,7 +216,7 @@ impl ops::Mul<Vector3> for f32 {
     }
 }
 
-impl ops::Mul<&Vector3> for f32 {
+impl ops::Mul<&Vector3> for f64 {
     type Output = Vector3;
 
     fn mul(self, rhs: &Vector3) -> Vector3 {
@@ -228,10 +228,10 @@ impl ops::Mul<&Vector3> for f32 {
     }
 }
 
-impl ops::Mul<f32> for Vector3 {
+impl ops::Mul<f64> for Vector3 {
     type Output = Vector3;
 
-    fn mul(self, rhs: f32) -> Vector3 {
+    fn mul(self, rhs: f64) -> Vector3 {
         Vector3 {
             x: self.x * rhs,
             y: self.y * rhs,
@@ -240,10 +240,10 @@ impl ops::Mul<f32> for Vector3 {
     }
 }
 
-impl ops::Mul<f32> for &Vector3 {
+impl ops::Mul<f64> for &Vector3 {
     type Output = Vector3;
 
-    fn mul(self, rhs: f32) -> Vector3 {
+    fn mul(self, rhs: f64) -> Vector3 {
         Vector3 {
             x: self.x * rhs,
             y: self.y * rhs,
@@ -253,7 +253,11 @@ impl ops::Mul<f32> for &Vector3 {
 }
 
 impl Vector3 {
-    pub fn magnitude(&self) -> f32 {
+    pub fn magnitude_squared(&self) -> f64 {
+        self.x * self.x + self.y * self.y + self.z * self.z
+    }
+
+    pub fn magnitude(&self) -> f64 {
         (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
     }
 
@@ -269,12 +273,12 @@ impl Vector3 {
         scalar * v
     }
 
-    pub fn dot_product(a: &Self, b: &Self) -> f32 {
+    pub fn dot_product(a: &Self, b: &Self) -> f64 {
         a.x * b.x + a.y * b.y + a.z * b.z
     }
 }
 
-pub fn rotate_around_x(v: &Vector3, angle: f32) -> Vector3 {
+pub fn rotate_around_x(v: &Vector3, angle: f64) -> Vector3 {
     let cos_angle = angle.cos();
     let sin_angle = angle.sin();
     Vector3 {
@@ -284,7 +288,7 @@ pub fn rotate_around_x(v: &Vector3, angle: f32) -> Vector3 {
     }
 }
 
-pub fn rotate_around_y(v: &Vector3, angle: f32) -> Vector3 {
+pub fn rotate_around_y(v: &Vector3, angle: f64) -> Vector3 {
     let cos_angle = angle.cos();
     let sin_angle = angle.sin();
     Vector3 {
@@ -294,7 +298,7 @@ pub fn rotate_around_y(v: &Vector3, angle: f32) -> Vector3 {
     }
 }
 
-pub fn rotate_around_z(v: &Vector3, angle: f32) -> Vector3 {
+pub fn rotate_around_z(v: &Vector3, angle: f64) -> Vector3 {
     let cos_angle = angle.cos();
     let sin_angle = angle.sin();
     Vector3 {
@@ -314,10 +318,10 @@ pub fn calc_cross_product(a: &Vector3, b: &Vector3) -> Vector3 {
 
 #[derive(Clone, Default, PartialEq, Copy)]
 pub struct Vector4 {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-    pub w: f32,
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+    pub w: f64,
 }
 
 impl Vector4 {
@@ -383,7 +387,7 @@ impl ops::Sub<&Vector4> for &Vector4 {
     }
 }
 
-impl ops::Mul<Vector4> for f32 {
+impl ops::Mul<Vector4> for f64 {
     type Output = Vector4;
 
     fn mul(self, rhs: Vector4) -> Vector4 {
@@ -396,7 +400,7 @@ impl ops::Mul<Vector4> for f32 {
     }
 }
 
-impl ops::Mul<&Vector4> for f32 {
+impl ops::Mul<&Vector4> for f64 {
     type Output = Vector4;
 
     fn mul(self, rhs: &Vector4) -> Vector4 {
@@ -409,10 +413,10 @@ impl ops::Mul<&Vector4> for f32 {
     }
 }
 
-impl ops::Mul<f32> for Vector4 {
+impl ops::Mul<f64> for Vector4 {
     type Output = Vector4;
 
-    fn mul(self, rhs: f32) -> Vector4 {
+    fn mul(self, rhs: f64) -> Vector4 {
         Vector4 {
             x: self.x * rhs,
             y: self.y * rhs,
@@ -422,10 +426,10 @@ impl ops::Mul<f32> for Vector4 {
     }
 }
 
-impl ops::Mul<f32> for &Vector4 {
+impl ops::Mul<f64> for &Vector4 {
     type Output = Vector4;
 
-    fn mul(self, rhs: f32) -> Vector4 {
+    fn mul(self, rhs: f64) -> Vector4 {
         Vector4 {
             x: self.x * rhs,
             y: self.y * rhs,
