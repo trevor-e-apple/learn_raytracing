@@ -2,6 +2,7 @@ use crate::color::{write_color, Color};
 
 mod color;
 mod vector;
+mod ray;
 
 fn main() {
     let image_width = 256;
