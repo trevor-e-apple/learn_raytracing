@@ -9,11 +9,22 @@ mod ray;
 mod vector;
 
 fn ray_color(r: &Ray) -> Color {
-    Color {
-        x: 0.00,
-        y: 0.00,
-        z: 0.00,
-    }
+    let unit_direction = Vector3::calc_normalized_vector(&r.direction);
+    let a = 0.5 * (unit_direction.y + 1.0);
+
+    let white_level = (1.0 - a)
+        * Color {
+            x: 1.0,
+            y: 1.0,
+            z: 1.0,
+        };
+    let blue_level = a * Color {
+        x: 0.5,
+        y: 0.7,
+        z: 1.0,
+    };
+
+    white_level + blue_level
 }
 
 fn main() {
@@ -72,7 +83,10 @@ fn main() {
         for i in 0..image_width {
             let pixel_center =
                 pixel00_loc + (i as f64) * pixel_delta_u + (j as f64) * pixel_delta_v;
-            let ray = Ray { origin: camera_center, direction: pixel_center - camera_center };
+            let ray = Ray {
+                origin: camera_center,
+                direction: pixel_center - camera_center,
+            };
             let pixel_color = ray_color(&ray);
 
             write_color(&pixel_color);
