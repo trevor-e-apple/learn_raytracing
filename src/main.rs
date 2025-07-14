@@ -8,36 +8,43 @@ mod color;
 mod ray;
 mod vector;
 
-fn hit_sphere(center: &Vector3, radius: f64, ray: &Ray) -> bool {
+fn hit_sphere(center: &Vector3, radius: f64, ray: &Ray) -> f64 {
     let oc = center - &ray.origin;
     let a = Vector3::dot_product(&ray.direction, &ray.direction);
     let b = -2.0 * Vector3::dot_product(&ray.direction, &oc);
     let c = Vector3::dot_product(&oc, &oc) - radius * radius;
     let discriminant = b * b - 4.0 * a * c;
-    discriminant >= 0.0
+    if discriminant < 0.0 {
+        -1.0
+    } else {
+        (-b - discriminant.sqrt()) / (2.0 * a)
+    }
 }
 
 fn ray_color(r: &Ray) -> Color {
-    if hit_sphere(&Vector3 { x: 0.0, y: 0.0, z: -1.0 }, 0.5, r) {
-        return Color{x: 1.0, y: 0.0, z: 0.0};
-    }
+    let sphere_center = Vector3 { x: 0.0, y: 0.0, z: -1.0 };
+    let t = hit_sphere(&sphere_center, 0.5, r);
+    if t > 0.0 {
+        let n = Vector3::calc_normalized_vector(&(r.at(t) - sphere_center));
+        0.5 * Color {x: n.x + 1.0, y: n.y + 1.0, z: n.z + 1.0}
+    } else {
+        let unit_direction = Vector3::calc_normalized_vector(&r.direction);
+        let a = 0.5 * (unit_direction.y + 1.0);
 
-    let unit_direction = Vector3::calc_normalized_vector(&r.direction);
-    let a = 0.5 * (unit_direction.y + 1.0);
-
-    let white_level = (1.0 - a)
-        * Color {
-            x: 1.0,
-            y: 1.0,
+        let white_level = (1.0 - a)
+            * Color {
+                x: 1.0,
+                y: 1.0,
+                z: 1.0,
+            };
+        let blue_level = a * Color {
+            x: 0.5,
+            y: 0.7,
             z: 1.0,
         };
-    let blue_level = a * Color {
-        x: 0.5,
-        y: 0.7,
-        z: 1.0,
-    };
 
-    white_level + blue_level
+        white_level + blue_level
+    }
 }
 
 fn main() {
