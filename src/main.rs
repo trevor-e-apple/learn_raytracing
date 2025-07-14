@@ -5,7 +5,9 @@ use crate::{
 };
 
 mod color;
+mod hittable;
 mod ray;
+mod sphere;
 mod vector;
 
 fn hit_sphere(center: &Vector3, radius: f64, ray: &Ray) -> f64 {
