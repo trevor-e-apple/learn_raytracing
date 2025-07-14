@@ -10,14 +10,14 @@ mod vector;
 
 fn hit_sphere(center: &Vector3, radius: f64, ray: &Ray) -> f64 {
     let oc = center - &ray.origin;
-    let a = Vector3::dot_product(&ray.direction, &ray.direction);
-    let b = -2.0 * Vector3::dot_product(&ray.direction, &oc);
-    let c = Vector3::dot_product(&oc, &oc) - radius * radius;
-    let discriminant = b * b - 4.0 * a * c;
+    let a = ray.direction.magnitude_squared();
+    let h = Vector3::dot_product(&ray.direction, &oc);
+    let c = oc.magnitude_squared() - radius * radius;
+    let discriminant = h * h - a * c;
     if discriminant < 0.0 {
         -1.0
     } else {
-        (-b - discriminant.sqrt()) / (2.0 * a)
+        (h - discriminant.sqrt()) / a
     }
 }
 
