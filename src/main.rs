@@ -8,7 +8,20 @@ mod color;
 mod ray;
 mod vector;
 
+fn hit_sphere(center: &Vector3, radius: f64, ray: &Ray) -> bool {
+    let oc = center - &ray.origin;
+    let a = Vector3::dot_product(&ray.direction, &ray.direction);
+    let b = -2.0 * Vector3::dot_product(&ray.direction, &oc);
+    let c = Vector3::dot_product(&oc, &oc) - radius * radius;
+    let discriminant = b * b - 4.0 * a * c;
+    discriminant >= 0.0
+}
+
 fn ray_color(r: &Ray) -> Color {
+    if hit_sphere(&Vector3 { x: 0.0, y: 0.0, z: -1.0 }, 0.5, r) {
+        return Color{x: 1.0, y: 0.0, z: 0.0};
+    }
+
     let unit_direction = Vector3::calc_normalized_vector(&r.direction);
     let a = 0.5 * (unit_direction.y + 1.0);
 
