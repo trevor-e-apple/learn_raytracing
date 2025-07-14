@@ -22,11 +22,19 @@ fn hit_sphere(center: &Vector3, radius: f64, ray: &Ray) -> f64 {
 }
 
 fn ray_color(r: &Ray) -> Color {
-    let sphere_center = Vector3 { x: 0.0, y: 0.0, z: -1.0 };
+    let sphere_center = Vector3 {
+        x: 0.0,
+        y: 0.0,
+        z: -1.0,
+    };
     let t = hit_sphere(&sphere_center, 0.5, r);
     if t > 0.0 {
         let n = Vector3::calc_normalized_vector(&(r.at(t) - sphere_center));
-        0.5 * Color {x: n.x + 1.0, y: n.y + 1.0, z: n.z + 1.0}
+        0.5 * Color {
+            x: n.x + 1.0,
+            y: n.y + 1.0,
+            z: n.z + 1.0,
+        }
     } else {
         let unit_direction = Vector3::calc_normalized_vector(&r.direction);
         let a = 0.5 * (unit_direction.y + 1.0);
