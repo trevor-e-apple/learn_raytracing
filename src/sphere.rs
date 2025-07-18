@@ -1,8 +1,11 @@
-use crate::{color::Vector3, hittable::{HitRecord, Hittable}};
+use crate::{
+    color::Vector3,
+    hittable::{HitRecord, Hittable},
+};
 
 pub struct Sphere {
     pub center: Vector3,
-    pub radius: f64
+    pub radius: f64,
 }
 
 impl Hittable for Sphere {
@@ -11,7 +14,7 @@ impl Hittable for Sphere {
         let a = r.direction.magnitude_squared();
         let h = Vector3::dot_product(&r.direction, &oc);
         let c = oc.magnitude_squared() - self.radius * self.radius;
-        
+
         let discriminant = h * h - a * c;
         if discriminant < 0.0 {
             return false;
@@ -33,7 +36,8 @@ impl Hittable for Sphere {
 
         rec.t = root;
         rec.point = r.at(rec.t);
-        rec.normal = (1.0 / self.radius) * (rec.point - self.center);
+        let outward_normal = (1.0 / self.radius) * (rec.point - self.center);
+        rec.set_face_normal(r, &outward_normal);
 
         true
     }

@@ -1,42 +1,32 @@
+use std::rc::Rc;
+
 use crate::{
     color::{Color, write_color},
+    hittable::{HitRecord, HittableList},
     ray::Ray,
+    sphere::Sphere,
     vector::Vector3,
 };
 
 mod color;
 mod hittable;
+mod math;
 mod ray;
 mod sphere;
 mod vector;
 
-fn hit_sphere(center: &Vector3, radius: f64, ray: &Ray) -> f64 {
-    let oc = center - &ray.origin;
-    let a = ray.direction.magnitude_squared();
-    let h = Vector3::dot_product(&ray.direction, &oc);
-    let c = oc.magnitude_squared() - radius * radius;
-    let discriminant = h * h - a * c;
-    if discriminant < 0.0 {
-        -1.0
-    } else {
-        (h - discriminant.sqrt()) / a
-    }
-}
-
-fn ray_color(r: &Ray) -> Color {
-    let sphere_center = Vector3 {
-        x: 0.0,
-        y: 0.0,
-        z: -1.0,
+fn ray_color(r: &Ray, world: &HittableList) -> Color {
+    let mut hit_record = HitRecord {
+        ..Default::default()
     };
-    let t = hit_sphere(&sphere_center, 0.5, r);
-    if t > 0.0 {
-        let n = Vector3::calc_normalized_vector(&(r.at(t) - sphere_center));
-        0.5 * Color {
-            x: n.x + 1.0,
-            y: n.y + 1.0,
-            z: n.z + 1.0,
-        }
+    if world.hit(r, 0.0, std::f64::INFINITY, &mut hit_record) {
+        let v = hit_record.normal
+            + Vector3 {
+                x: 1.0,
+                y: 1.0,
+                z: 1.0,
+            };
+        0.5 * v
     } else {
         let unit_direction = Vector3::calc_normalized_vector(&r.direction);
         let a = 0.5 * (unit_direction.y + 1.0);
@@ -64,6 +54,28 @@ fn main() {
         let height = (image_width as f64 / aspect_ratio) as i32;
 
         if height > 1 { height } else { 1 }
+    };
+
+    // World
+    let world = HittableList {
+        objects: vec![
+            Rc::new(Sphere {
+                center: Vector3 {
+                    x: 0.0,
+                    y: 0.0,
+                    z: -1.0,
+                },
+                radius: 0.5,
+            }),
+            Rc::new(Sphere {
+                center: Vector3 {
+                    x: 0.0,
+                    y: -100.5,
+                    z: -1.0,
+                },
+                radius: 100.0,
+            }),
+        ],
     };
 
     // Camera
@@ -117,7 +129,7 @@ fn main() {
                 origin: camera_center,
                 direction: pixel_center - camera_center,
             };
-            let pixel_color = ray_color(&ray);
+            let pixel_color = ray_color(&ray, &world);
 
             write_color(&pixel_color);
         }
