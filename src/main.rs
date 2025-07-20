@@ -13,9 +13,9 @@ mod vector;
 fn main() {
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
-    
+
     // Camera
-    let camera = Camera::new(aspect_ratio, image_width);
+    let mut camera = Camera::new(aspect_ratio, image_width, 100);
 
     // World
     let world = HittableList {

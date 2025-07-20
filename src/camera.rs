@@ -1,5 +1,7 @@
+use rand::{Rng, rngs::ThreadRng};
+
 use crate::{
-    color::{write_color, Color},
+    color::{Color, write_color},
     hittable::{HitRecord, HittableList},
     ray::Ray,
     vector::Vector3,
@@ -8,16 +10,18 @@ use crate::{
 pub struct Camera {
     aspect_ratio: f64,
     image_width: i32,
-
     image_height: i32,
     center: Vector3,
     pixel00_loc: Vector3,
     pixel_delta_u: Vector3,
     pixel_delta_v: Vector3,
+    samples_per_pixel: i32,
+    pixel_samples_scale: f64,
+    rng: ThreadRng,
 }
 
 impl Camera {
-    pub fn new(aspect_ratio: f64, image_width: i32) -> Self {
+    pub fn new(aspect_ratio: f64, image_width: i32, samples_per_pixel: i32) -> Self {
         let image_height = {
             let height = (image_width as f64 / aspect_ratio) as i32;
 
@@ -62,6 +66,8 @@ impl Camera {
             - 0.5 * viewport_v;
         let pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
+        let pixel_samples_scale = 1.0 / samples_per_pixel as f64;
+
         Self {
             aspect_ratio,
             image_width,
@@ -70,25 +76,31 @@ impl Camera {
             pixel00_loc,
             pixel_delta_u,
             pixel_delta_v,
+            samples_per_pixel,
+            pixel_samples_scale,
+            rng: rand::rng(),
         }
     }
 
-    pub fn render(&self, world: &HittableList) {
+    pub fn render(&mut self, world: &HittableList) {
         // Output ppm file
         println!("P3");
         println!("{} {} 255", self.image_width, self.image_height);
 
         for j in 0..self.image_height {
             for i in 0..self.image_width {
-                let pixel_center = self.pixel00_loc
-                    + (i as f64) * self.pixel_delta_u
-                    + (j as f64) * self.pixel_delta_v;
-                let ray = Ray {
-                    origin: self.center,
-                    direction: pixel_center - self.center,
+                // Perform sampling
+                let mut pixel_color = Color {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
                 };
-                let pixel_color = self.ray_color(&ray, &world);
+                for _ in 0..self.samples_per_pixel {
+                    let r = self.get_ray(i, j);
+                    pixel_color = pixel_color + self.ray_color(&r, world);
+                }
 
+                pixel_color = self.pixel_samples_scale * pixel_color;
                 write_color(&pixel_color);
             }
         }
@@ -123,6 +135,31 @@ impl Camera {
             };
 
             white_level + blue_level
+        }
+    }
+
+    /// Construct a camera ray originating from the origin and directed at randomly sampled point
+    /// around the pixel location i,j
+    fn get_ray(&mut self, i: i32, j: i32) -> Ray {
+        let offset = self.sample_square();
+        let pixel_sample = self.pixel00_loc
+            + ((i as f64) + offset.x) * self.pixel_delta_u
+            + ((j as f64) + offset.y) * self.pixel_delta_v;
+        let ray_origin = self.center;
+        let ray_direction = pixel_sample - ray_origin;
+
+        Ray {
+            origin: ray_origin,
+            direction: ray_direction,
+        }
+    }
+
+    /// Returns the vector to a random point in the [-.5, -.5] - [.5, .5] unit square
+    fn sample_square(&mut self) -> Vector3 {
+        Vector3 {
+            x: self.rng.random_range(-0.5..0.5),
+            y: self.rng.random_range(-0.5..0.5),
+            z: 0.0,
         }
     }
 }
