@@ -16,7 +16,7 @@ fn main() {
     let image_width = 400;
 
     // Camera
-    let mut camera = Camera::new(aspect_ratio, image_width, 100);
+    let mut camera = Camera::new(aspect_ratio, image_width, 100, 50);
 
     // World
     let world = HittableList {
