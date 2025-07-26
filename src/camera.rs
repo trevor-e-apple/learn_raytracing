@@ -106,18 +106,14 @@ impl Camera {
         }
     }
 
-    fn ray_color(&self, r: &Ray, world: &HittableList) -> Color {
+    fn ray_color(&mut self, r: &Ray, world: &HittableList) -> Color {
         let mut hit_record = HitRecord {
             ..Default::default()
         };
         if world.hit(r, 0.0, std::f64::INFINITY, &mut hit_record) {
-            let v = hit_record.normal
-                + Vector3 {
-                    x: 1.0,
-                    y: 1.0,
-                    z: 1.0,
-                };
-            0.5 * v
+            let direction = Vector3::random_on_hemisphere(&mut self.rng, &hit_record.normal);
+
+            0.5 * self.ray_color(&Ray{ origin: hit_record.point, direction }, world)
         } else {
             let unit_direction = Vector3::calc_normalized_vector(&r.direction);
             let a = 0.5 * (unit_direction.y + 1.0);

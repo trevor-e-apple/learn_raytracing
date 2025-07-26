@@ -6,6 +6,7 @@ mod camera;
 mod color;
 mod hittable;
 mod math;
+mod random_vector;
 mod ray;
 mod sphere;
 mod vector;
