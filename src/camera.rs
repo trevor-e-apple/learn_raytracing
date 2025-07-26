@@ -117,7 +117,10 @@ impl Camera {
         let mut hit_record = HitRecord {
             ..Default::default()
         };
-        if world.hit(r, 0.0, std::f64::INFINITY, &mut hit_record) {
+
+        // We ignore hits that are very close to the origin of the ray, since
+        // -- that could be the result of floating-point rounding errors
+        if world.hit(r, 0.001, std::f64::INFINITY, &mut hit_record) {
             let direction = Vector3::random_on_hemisphere(&mut self.rng, &hit_record.normal);
 
             0.5 * self.ray_color(&Ray{ origin: hit_record.point, direction }, depth - 1, world)
