@@ -1,11 +1,12 @@
 use std::rc::Rc;
 
-use crate::{color::Vector3, ray::Ray};
+use crate::{color::Vector3, material::Material, ray::Ray};
 
-#[derive(Default, Clone)]
+#[derive(Clone)]
 pub struct HitRecord {
     pub point: Vector3,
     pub normal: Vector3,
+    pub mat: Option<Rc<dyn Material>>,
     pub t: f64,
     pub front_face: bool,
 }
@@ -43,7 +44,11 @@ impl HittableList {
 
     pub fn hit(&self, r: &Ray, ray_tmin: f64, ray_tmax: f64, rec: &mut HitRecord) -> bool {
         let mut temp_rec = HitRecord {
-            ..Default::default()
+            point: Vector3 { ..Default::default() },
+            normal: Vector3 { ..Default::default() },
+            mat: None,
+            t: 0.0,
+            front_face: false,
         };
         let mut hit_anything = false;
         let mut closest_so_far = ray_tmax;

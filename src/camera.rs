@@ -115,7 +115,11 @@ impl Camera {
         }
 
         let mut hit_record = HitRecord {
-            ..Default::default()
+            point: Vector3 { ..Default::default() },
+            normal: Vector3 { ..Default::default() },
+            mat: None,
+            t: 0.0,
+            front_face: false,
         };
 
         // We ignore hits that are very close to the origin of the ray, since

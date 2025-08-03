@@ -6,6 +6,8 @@ mod camera;
 mod color;
 mod hittable;
 mod math;
+mod material;
+mod vector_raytrace;
 mod random_vector;
 mod ray;
 mod sphere;
