@@ -48,6 +48,7 @@ fn main() {
             y: 0.8,
             z: 0.8,
         },
+        fuzz: 0.1,
     });
     let material_right = Rc::new(Metal {
         albedo: Color {
@@ -55,6 +56,7 @@ fn main() {
             y: 0.6,
             z: 0.2,
         },
+        fuzz: 1.0,
     });
 
     // World
