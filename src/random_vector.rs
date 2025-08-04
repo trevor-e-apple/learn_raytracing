@@ -23,7 +23,7 @@ impl Vector3 {
         loop {
             let p = Self::random_new_range(rng, -1.0, 1.0);
             let mag_squared = p.magnitude_squared();
-            if 1e-160 < mag_squared &&  mag_squared <= 1.0 {
+            if 1e-160 < mag_squared && mag_squared <= 1.0 {
                 return (1.0 / mag_squared.sqrt()) * p;
             }
         }

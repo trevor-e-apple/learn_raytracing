@@ -1,5 +1,4 @@
 /// For raytracing-specific vector functions
-
 use crate::color::Vector3;
 
 pub fn near_zero(v: Vector3) -> bool {

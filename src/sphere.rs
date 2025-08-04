@@ -2,7 +2,8 @@ use std::rc::Rc;
 
 use crate::{
     color::Vector3,
-    hittable::{HitRecord, Hittable}, material::Material,
+    hittable::{HitRecord, Hittable},
+    material::Material,
 };
 
 pub struct Sphere {

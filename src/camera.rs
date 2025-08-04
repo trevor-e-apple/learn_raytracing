@@ -22,7 +22,12 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(aspect_ratio: f64, image_width: i32, samples_per_pixel: i32, max_depth: i32) -> Self {
+    pub fn new(
+        aspect_ratio: f64,
+        image_width: i32,
+        samples_per_pixel: i32,
+        max_depth: i32,
+    ) -> Self {
         let image_height = {
             let height = (image_width as f64 / aspect_ratio) as i32;
 
@@ -111,12 +116,20 @@ impl Camera {
     fn ray_color(&mut self, r: &Ray, depth: i32, world: &HittableList) -> Color {
         // If we've exceeded the ray bounce limit, no more light is gathered
         if depth <= 0 {
-            return Color { x: 0.0, y: 0.0, z: 0.0 };
+            return Color {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            };
         }
 
         let mut hit_record = HitRecord {
-            point: Vector3 { ..Default::default() },
-            normal: Vector3 { ..Default::default() },
+            point: Vector3 {
+                ..Default::default()
+            },
+            normal: Vector3 {
+                ..Default::default()
+            },
             mat: None,
             t: 0.0,
             front_face: false,
@@ -125,9 +138,42 @@ impl Camera {
         // We ignore hits that are very close to the origin of the ray, since
         // -- that could be the result of floating-point rounding errors
         if world.hit(r, 0.001, std::f64::INFINITY, &mut hit_record) {
-            let direction = hit_record.normal + Vector3::random_unit_vector(&mut self.rng);
-
-            0.5 * self.ray_color(&Ray{ origin: hit_record.point, direction }, depth - 1, world)
+            let material = hit_record
+                .mat
+                .as_ref()
+                .expect("Missing material in hit_record")
+                .clone();
+            let mut attenuation = Color {
+                ..Default::default()
+            };
+            let mut scattered = Ray {
+                origin: Vector3 {
+                    ..Default::default()
+                },
+                direction: Vector3 {
+                    ..Default::default()
+                },
+            };
+            if material.scatter(
+                r,
+                &hit_record,
+                &mut attenuation,
+                &mut scattered,
+                &mut self.rng,
+            ) {
+                let scattered_color = self.ray_color(&scattered, depth - 1, world);
+                Color {
+                    x: attenuation.x * scattered_color.x,
+                    y: attenuation.y * scattered_color.y,
+                    z: attenuation.z * scattered_color.z,
+                }
+            } else {
+                Color {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                }
+            }
         } else {
             let unit_direction = Vector3::calc_normalized_vector(&r.direction);
             let a = 0.5 * (unit_direction.y + 1.0);

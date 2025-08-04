@@ -44,8 +44,12 @@ impl HittableList {
 
     pub fn hit(&self, r: &Ray, ray_tmin: f64, ray_tmax: f64, rec: &mut HitRecord) -> bool {
         let mut temp_rec = HitRecord {
-            point: Vector3 { ..Default::default() },
-            normal: Vector3 { ..Default::default() },
+            point: Vector3 {
+                ..Default::default()
+            },
+            normal: Vector3 {
+                ..Default::default()
+            },
             mat: None,
             t: 0.0,
             front_face: false,
