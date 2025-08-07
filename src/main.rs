@@ -4,7 +4,7 @@ use crate::{
     camera::Camera,
     color::Color,
     hittable::HittableList,
-    material::{Lambertian, Metal},
+    material::{Dielectric, Lambertian, Metal},
     sphere::Sphere,
     vector::Vector3,
 };
@@ -42,13 +42,8 @@ fn main() {
             z: 0.5,
         },
     });
-    let material_left = Rc::new(Metal {
-        albedo: Color {
-            x: 0.8,
-            y: 0.8,
-            z: 0.8,
-        },
-        fuzz: 0.1,
+    let material_left = Rc::new(Dielectric {
+        refraction_index: 1.5,
     });
     let material_right = Rc::new(Metal {
         albedo: Color {

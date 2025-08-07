@@ -4,7 +4,7 @@ use crate::{
     color::{Color, Vector3},
     hittable::HitRecord,
     ray::Ray,
-    vector_raytrace::{near_zero, reflect},
+    vector_raytrace::{near_zero, reflect, refract},
 };
 
 pub trait Material {
@@ -77,5 +77,41 @@ impl Material for Metal {
         *attenuation = self.albedo;
 
         Vector3::dot_product(&scattered.direction, &rec.normal) > 0.0
+    }
+}
+
+pub struct Dielectric {
+    pub refraction_index: f64,
+}
+
+impl Material for Dielectric {
+    fn scatter(
+        &self,
+        r_in: &Ray,
+        rec: &HitRecord,
+        attenuation: &mut Color,
+        scattered: &mut Ray,
+        rng: &mut ThreadRng,
+    ) -> bool {
+        *attenuation = Color {
+            x: 1.0,
+            y: 1.0,
+            z: 1.0,
+        };
+        let ri = if rec.front_face {
+            1.0 / self.refraction_index
+        } else {
+            self.refraction_index
+        };
+
+        let unit_direction = Vector3::calc_normalized_vector(&r_in.direction);
+        let refracted = refract(&unit_direction, &rec.normal, ri);
+
+        *scattered = Ray {
+            origin: rec.point,
+            direction: refracted,
+        };
+
+        true
     }
 }
