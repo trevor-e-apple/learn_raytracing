@@ -43,7 +43,7 @@ fn main() {
         },
     });
     let material_left = Rc::new(Dielectric {
-        refraction_index: 1.5,
+        refraction_index: 1.0 / 1.33,
     });
     let material_right = Rc::new(Metal {
         albedo: Color {
