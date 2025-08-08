@@ -43,7 +43,10 @@ fn main() {
         },
     });
     let material_left = Rc::new(Dielectric {
-        refraction_index: 1.0 / 1.33,
+        refraction_index: 1.5,
+    });
+    let material_bubble = Rc::new(Dielectric {
+        refraction_index: (1.0 / 1.5),
     });
     let material_right = Rc::new(Metal {
         albedo: Color {
@@ -74,6 +77,15 @@ fn main() {
                 },
                 radius: 0.5,
                 mat: material_left,
+            }),
+            Rc::new(Sphere {
+                center: Vector3 {
+                    x: -1.0,
+                    y: 0.0,
+                    z: -1.0,
+                },
+                radius: 0.4,
+                mat: material_bubble,
             }),
             Rc::new(Sphere {
                 center: Vector3 {
