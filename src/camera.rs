@@ -3,6 +3,7 @@ use rand::{Rng, rngs::ThreadRng};
 use crate::{
     color::{Color, write_color},
     hittable::{HitRecord, HittableList},
+    math::degrees_to_radians,
     ray::Ray,
     vector::Vector3,
 };
@@ -11,6 +12,7 @@ pub struct Camera {
     aspect_ratio: f64,
     image_width: i32,
     image_height: i32,
+    vfov: f64,
     center: Vector3,
     pixel00_loc: Vector3,
     pixel_delta_u: Vector3,
@@ -23,6 +25,7 @@ pub struct Camera {
 
 impl Camera {
     pub fn new(
+        vfov: f64,
         aspect_ratio: f64,
         image_width: i32,
         samples_per_pixel: i32,
@@ -35,6 +38,11 @@ impl Camera {
         };
 
         let focal_length = 1.0;
+
+        let theta = degrees_to_radians(vfov);
+        let h = (theta / 2.0).tan();
+        let viewport_height = 2.0 * h * focal_length;
+
         // Viewport dimensions can be real valued
         let viewport_height = 2.0;
         // We don't reuse aspect ratio since the image_height is not real-valued and doesn't represent the *true* ratio
@@ -78,6 +86,7 @@ impl Camera {
             aspect_ratio,
             image_width,
             image_height,
+            vfov,
             center,
             pixel00_loc,
             pixel_delta_u,
