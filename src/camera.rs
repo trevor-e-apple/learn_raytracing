@@ -50,12 +50,10 @@ impl Camera {
 
         let focal_length = (look_from - look_at).magnitude();
 
+        // Determine viewport dimensions
         let theta = degrees_to_radians(vfov);
         let h = (theta / 2.0).tan();
         let viewport_height = 2.0 * h * focal_length;
-
-        // Viewport dimensions can be real valued
-        let viewport_height = 2.0;
         // We don't reuse aspect ratio since the image_height is not real-valued and doesn't represent the *true* ratio
         let viewport_width = viewport_height * (image_width as f64 / image_height as f64);
 

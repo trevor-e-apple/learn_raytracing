@@ -1,0 +1,46 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+    
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'learn_raycasting'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=learn_raycasting",
+                    "--package=learn_raycasting"
+                ],
+                "filter": {
+                    "name": "learn_raycasting",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'learn_raycasting'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=learn_raycasting",
+                    "--package=learn_raycasting"
+                ],
+                "filter": {
+                    "name": "learn_raycasting",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

@@ -26,7 +26,7 @@ fn main() {
 
     // Camera
     let mut camera = Camera::new(
-        90.0,
+        20.0,
         aspect_ratio,
         image_width,
         100,
