@@ -6,9 +6,7 @@ pub struct Ray {
     pub direction: Vector3,
 }
 
-impl Ray {
-    /// Linearly interpolate between ray origin and direction
-    pub fn at(ray: &Self, t: f64) -> Vector3 {
-        ray.origin + t * ray.direction
-    } 
+/// Linearly interpolate between ray origin and direction
+pub fn at(ray: &Ray, t: f64) -> Vector3 {
+    ray.origin + t * ray.direction
 }
