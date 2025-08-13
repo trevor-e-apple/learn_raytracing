@@ -1,3 +1,4 @@
+mod ray;
 mod vector;
 
 fn main() {
