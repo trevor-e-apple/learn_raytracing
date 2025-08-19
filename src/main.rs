@@ -1,9 +1,38 @@
-use crate::vector::Vector3;
+use crate::{ray::Ray, vector::Vector3};
 
 mod ray;
 mod vector;
 
 // We use a right-handed coordinate system
+
+/// Get the color of the scene for a ray
+fn ray_color(ray: &Ray) -> Vector3 {
+    let unit_vector = Vector3::calc_normalized_vector(&ray.direction);
+
+    let white = Vector3 {
+        x: 1.0,
+        y: 1.0,
+        z: 1.0,
+    };
+    let blue = Vector3 {
+        x: 0.5,
+        y: 0.7,
+        z: 1.0,
+    };
+
+    let lerp_value = (unit_vector.y + 1.0) / 2.0; // Y value has a range of -1.0 to 1.0, and we map that to 0.0 to 1.0 
+    let blended = (1.0 - lerp_value) * white + lerp_value * blue;
+
+    blended
+}
+
+fn write_color(color: &Vector3) {
+    let r = (color.x * 255.99) as i32;
+    let g = (color.y * 255.99) as i32;
+    let b = (color.z * 255.99) as i32;
+
+    println!("{} {} {}", r, g, b);
+}
 
 fn main() {
     let aspect_ratio = 16.0 / 9.0;
@@ -29,10 +58,9 @@ fn main() {
     };
 
     // Pixels are inset by half the pixel-to-pixel distance so that the viewport area is evenly divided into width x height regions
-    let pixel_spacing_x = viewport_width / (image_width) as f64;
-    let pixel_spacing_y = viewport_height / (image_height) as f64;
+    let pixel_spacing_x = viewport_width / (image_width as f64);
+    let pixel_spacing_y = viewport_height / (image_height as f64);
     let top_left_pixel = {
-        // camera_center +  + Vector3 { x: todo!(), y: todo!(), z: todo!() }
         let viewport_upper_left = camera_center
             + Vector3 {
                 x: -1.0 * viewport_width / 2.0,
@@ -52,19 +80,21 @@ fn main() {
     println!("{} {}", image_width, image_height);
     println!("255");
 
-    for x in 0..image_width {
-        for y in 0..image_height {
-            let r: i32 = {
-                let r = (x as f64) / (image_width as f64);
-                (255.99 * r) as i32
+    for y in 0..image_height {
+        eprintln!("Scanlines remaining: {}", image_height - y);
+        for x in 0..image_width {
+            // Note that we subtract the y values because we are going from the top down
+            let current_pixel = Vector3 {
+                x: top_left_pixel.x + (x as f64) * pixel_spacing_x,
+                y: top_left_pixel.y - (y as f64) * pixel_spacing_y,
+                z: top_left_pixel.z,
             };
-            let g: i32 = {
-                let g = (y as f64) / (image_height as f64);
-                (255.99 * g) as i32
+            let ray = Ray {
+                origin: camera_center,
+                direction: current_pixel - camera_center,
             };
-            let b: i32 = 0;
-
-            println!("{} {} {}", r, g, b);
+            let color = ray_color(&ray);
+            write_color(&color);
         }
     }
 }
