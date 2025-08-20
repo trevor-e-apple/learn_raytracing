@@ -59,17 +59,8 @@ fn hit_sphere(ray: &Ray, center: Vector3, radius: f64) -> bool {
     let b = Vector3::dot_product(&(-2.0 * ray.direction), &center_minus_origin);
     let c = Vector3::dot_product(&center_minus_origin, &center_minus_origin) - (radius * radius);
 
-    let determinant = b * b - 4.0 * a * c;
-    if determinant < 0.0 {
-        // No roots
-        false
-    } else if determinant == 0.0 {
-        // One root
-        true
-    } else {
-        // Two roots
-        true
-    }
+    let discriminant = b * b - 4.0 * a * c;
+    discriminant >= 0.0
 }
 
 fn main() {
