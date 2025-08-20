@@ -7,19 +7,23 @@ mod vector;
 
 /// Get the color of the scene for a ray
 fn ray_color(ray: &Ray) -> Vector3 {
-    if hit_sphere(
-        ray,
-        Vector3 {
-            x: 0.0,
-            y: 0.0,
-            z: -1.0,
-        },
-        0.5,
-    ) {
-        Vector3 {
-            x: 1.0,
-            y: 0.0,
-            z: 0.0,
+    let sphere_center = Vector3 {
+        x: 0.0,
+        y: 0.0,
+        z: -1.0,
+    };
+    let intersection_value = hit_sphere(ray, sphere_center, 0.5);
+    if intersection_value > 0.0 {
+        let intersection_point = ray::at(&ray, intersection_value);
+        // Since this is a sphere, the normal vector is just the intersection point
+        // minus the sphere center.
+        // The normal points out.
+        let normal_vector = Vector3::calc_normalized_vector(&(intersection_point - sphere_center));
+        // map the normal vector (component's values [-1, 1]) to the color space (valued [0, 1])
+        0.5 * Vector3 {
+            x: normal_vector.x + 1.0,
+            y: normal_vector.y + 1.0,
+            z: normal_vector.z + 1.0,
         }
     } else {
         let unit_vector = Vector3::calc_normalized_vector(&ray.direction);
@@ -52,15 +56,18 @@ fn write_color(color: &Vector3) {
 }
 
 /// Solves for a value t where the ray intersects the sphere centered at 'center' with radius 'radius'.
-/// Returns a boolean indicating whether or not there is at least one intersection
-fn hit_sphere(ray: &Ray, center: Vector3, radius: f64) -> bool {
+fn hit_sphere(ray: &Ray, center: Vector3, radius: f64) -> f64 {
     let center_minus_origin = center - ray.origin;
     let a = Vector3::dot_product(&ray.direction, &ray.direction);
     let b = Vector3::dot_product(&(-2.0 * ray.direction), &center_minus_origin);
     let c = Vector3::dot_product(&center_minus_origin, &center_minus_origin) - (radius * radius);
 
     let discriminant = b * b - 4.0 * a * c;
-    discriminant >= 0.0
+    if discriminant < 0.0 {
+        -1.0
+    } else {
+        (-1.0 * b - discriminant.sqrt()) / (2.0 * a)
+    }
 }
 
 fn main() {
