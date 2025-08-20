@@ -7,31 +7,69 @@ mod vector;
 
 /// Get the color of the scene for a ray
 fn ray_color(ray: &Ray) -> Vector3 {
-    let unit_vector = Vector3::calc_normalized_vector(&ray.direction);
+    if hit_sphere(
+        ray,
+        Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: -1.0,
+        },
+        0.5,
+    ) {
+        Vector3 {
+            x: 1.0,
+            y: 0.0,
+            z: 0.0,
+        }
+    } else {
+        let unit_vector = Vector3::calc_normalized_vector(&ray.direction);
 
-    let white = Vector3 {
-        x: 1.0,
-        y: 1.0,
-        z: 1.0,
-    };
-    let blue = Vector3 {
-        x: 0.5,
-        y: 0.7,
-        z: 1.0,
-    };
+        let white = Vector3 {
+            x: 1.0,
+            y: 1.0,
+            z: 1.0,
+        };
+        let blue = Vector3 {
+            x: 0.5,
+            y: 0.7,
+            z: 1.0,
+        };
 
-    let lerp_value = (unit_vector.y + 1.0) / 2.0; // Y value has a range of -1.0 to 1.0, and we map that to 0.0 to 1.0 
-    let blended = (1.0 - lerp_value) * white + lerp_value * blue;
+        let lerp_value = (unit_vector.y + 1.0) / 2.0; // Y value has a range of -1.0 to 1.0, and we map that to 0.0 to 1.0 
+        let blended = (1.0 - lerp_value) * white + lerp_value * blue;
 
-    blended
+        blended
+    }
 }
 
+/// Write a color out to stdout for the ppm format
 fn write_color(color: &Vector3) {
     let r = (color.x * 255.99) as i32;
     let g = (color.y * 255.99) as i32;
     let b = (color.z * 255.99) as i32;
 
     println!("{} {} {}", r, g, b);
+}
+
+/// Solves for a value t where the ray intersects the sphere centered at 'center' with radius 'radius'.
+/// Returns a boolean indicating whether or not there is at least one intersection
+fn hit_sphere(ray: &Ray, center: Vector3, radius: f64) -> bool {
+    let center_minus_origin = center - ray.origin;
+    let a = Vector3::dot_product(&ray.direction, &ray.direction);
+    let b = Vector3::dot_product(&(-2.0 * ray.direction), &center_minus_origin);
+    let c = Vector3::dot_product(&center_minus_origin, &center_minus_origin) - (radius * radius);
+
+    let determinant = b * b - 4.0 * a * c;
+    if determinant < 0.0 {
+        // No roots
+        false
+    } else if determinant == 0.0 {
+        // One root
+        true
+    } else {
+        // Two roots
+        true
+    }
 }
 
 fn main() {
@@ -48,53 +86,65 @@ fn main() {
     // We don't reuse the aspect_ratio for calculating the viewport_width b/c that is the idealized ratio (not the actual ratio)
     let viewport_width = viewport_height * (image_width as f64 / image_height as f64);
 
-    // Camera
-    // I think the focal length is arbitrary
-    let focal_length = 1.0;
-    let camera_center = Vector3 {
-        x: 0.0,
-        y: 0.0,
-        z: 0.0,
-    };
+    // Camera data
+    let (top_left_pixel, pixel_spacing_x, pixel_spacing_y, camera_center) = {
+        // I think the focal length is arbitrary
+        let focal_length = 1.0;
+        let camera_center = Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        };
 
-    // Pixels are inset by half the pixel-to-pixel distance so that the viewport area is evenly divided into width x height regions
-    let pixel_spacing_x = viewport_width / (image_width as f64);
-    let pixel_spacing_y = viewport_height / (image_height as f64);
-    let top_left_pixel = {
-        let viewport_upper_left = camera_center
-            + Vector3 {
-                x: -1.0 * viewport_width / 2.0,
-                y: viewport_height / 2.0,
-                z: -1.0 * focal_length,
-            };
-        viewport_upper_left
-            + Vector3 {
-                x: pixel_spacing_x / 2.0,
-                y: pixel_spacing_y / 2.0,
-                z: 0.0,
-            }
+        // Pixels are inset by half the pixel-to-pixel distance so that the viewport area is evenly divided into width x height regions
+        let pixel_spacing_x = viewport_width / (image_width as f64);
+        let pixel_spacing_y = viewport_height / (image_height as f64);
+        let top_left_pixel = {
+            let viewport_upper_left = camera_center
+                + Vector3 {
+                    x: -1.0 * viewport_width / 2.0,
+                    y: viewport_height / 2.0,
+                    z: -1.0 * focal_length,
+                };
+            viewport_upper_left
+                + Vector3 {
+                    x: pixel_spacing_x / 2.0,
+                    y: pixel_spacing_y / 2.0,
+                    z: 0.0,
+                }
+        };
+
+        (
+            top_left_pixel,
+            pixel_spacing_x,
+            pixel_spacing_y,
+            camera_center,
+        )
     };
 
     // Render
-    println!("P3");
-    println!("{} {}", image_width, image_height);
-    println!("255");
+    {
+        // ppm format preamble
+        println!("P3");
+        println!("{} {}", image_width, image_height);
+        println!("255");
 
-    for y in 0..image_height {
-        eprintln!("Scanlines remaining: {}", image_height - y);
-        for x in 0..image_width {
-            // Note that we subtract the y values because we are going from the top down
-            let current_pixel = Vector3 {
-                x: top_left_pixel.x + (x as f64) * pixel_spacing_x,
-                y: top_left_pixel.y - (y as f64) * pixel_spacing_y,
-                z: top_left_pixel.z,
-            };
-            let ray = Ray {
-                origin: camera_center,
-                direction: current_pixel - camera_center,
-            };
-            let color = ray_color(&ray);
-            write_color(&color);
+        for y in 0..image_height {
+            eprintln!("Scanlines remaining: {}", image_height - y);
+            for x in 0..image_width {
+                // Note that we subtract the y values because we are going from the top down
+                let current_pixel = Vector3 {
+                    x: top_left_pixel.x + (x as f64) * pixel_spacing_x,
+                    y: top_left_pixel.y - (y as f64) * pixel_spacing_y,
+                    z: top_left_pixel.z,
+                };
+                let ray = Ray {
+                    origin: camera_center,
+                    direction: current_pixel - camera_center,
+                };
+                let color = ray_color(&ray);
+                write_color(&color);
+            }
         }
     }
 }
