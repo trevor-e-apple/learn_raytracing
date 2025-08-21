@@ -1,6 +1,8 @@
 use crate::{ray::Ray, vector::Vector3};
 
+mod hit_record;
 mod ray;
+mod sphere;
 mod vector;
 
 // We use a right-handed coordinate system
@@ -53,21 +55,6 @@ fn write_color(color: &Vector3) {
     let b = (color.z * 255.99) as i32;
 
     println!("{} {} {}", r, g, b);
-}
-
-/// Solves for a value t where the ray intersects the sphere centered at 'center' with radius 'radius'.
-fn hit_sphere(ray: &Ray, center: Vector3, radius: f64) -> f64 {
-    let center_minus_origin = center - ray.origin;
-    let a = Vector3::dot_product(&ray.direction, &ray.direction);
-    let b = Vector3::dot_product(&(-2.0 * ray.direction), &center_minus_origin);
-    let c = Vector3::dot_product(&center_minus_origin, &center_minus_origin) - (radius * radius);
-
-    let discriminant = b * b - 4.0 * a * c;
-    if discriminant < 0.0 {
-        -1.0
-    } else {
-        (-1.0 * b - discriminant.sqrt()) / (2.0 * a)
-    }
 }
 
 fn main() {
