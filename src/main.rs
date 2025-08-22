@@ -1,6 +1,12 @@
-use crate::{ray::Ray, vector::Vector3};
+use crate::{
+    hit_record::HitRecord,
+    ray::Ray,
+    sphere::{Sphere, hit_sphere},
+    vector::Vector3,
+};
 
 mod hit_record;
+mod math;
 mod ray;
 mod sphere;
 mod vector;
@@ -8,43 +14,55 @@ mod vector;
 // We use a right-handed coordinate system
 
 /// Get the color of the scene for a ray
-fn ray_color(ray: &Ray) -> Vector3 {
-    let sphere_center = Vector3 {
-        x: 0.0,
-        y: 0.0,
-        z: -1.0,
-    };
-    let intersection_value = hit_sphere(ray, sphere_center, 0.5);
-    if intersection_value > 0.0 {
-        let intersection_point = ray::at(&ray, intersection_value);
-        // Since this is a sphere, the normal vector is just the intersection point
-        // minus the sphere center.
-        // The normal points out.
-        let normal_vector = Vector3::calc_normalized_vector(&(intersection_point - sphere_center));
-        // map the normal vector (component's values [-1, 1]) to the color space (valued [0, 1])
-        0.5 * Vector3 {
-            x: normal_vector.x + 1.0,
-            y: normal_vector.y + 1.0,
-            z: normal_vector.z + 1.0,
+fn ray_color(ray_in: &Ray, spheres: &Vec<Sphere>) -> Vector3 {
+    // Find the closest geometry that the ray hit
+    let closest_record = {
+        let mut closest_record: Option<HitRecord> = None;
+        let mut closest = std::f64::INFINITY;
+        for sphere_geometry in spheres {
+            match hit_sphere(ray_in, sphere_geometry, 0.0, std::f64::INFINITY) {
+                Some(record) => {
+                    if record.t < closest {
+                        closest = record.t;
+                        closest_record = Some(record);
+                    }
+                }
+                None => {}
+            }
         }
-    } else {
-        let unit_vector = Vector3::calc_normalized_vector(&ray.direction);
 
-        let white = Vector3 {
-            x: 1.0,
-            y: 1.0,
-            z: 1.0,
-        };
-        let blue = Vector3 {
-            x: 0.5,
-            y: 0.7,
-            z: 1.0,
-        };
+        closest_record
+    };
 
-        let lerp_value = (unit_vector.y + 1.0) / 2.0; // Y value has a range of -1.0 to 1.0, and we map that to 0.0 to 1.0 
-        let blended = (1.0 - lerp_value) * white + lerp_value * blue;
+    match closest_record {
+        Some(closest_record) => {
+            // Map the normal vector (component's values [-1, 1]) to the color space (valued [0, 1])
+            0.5 * Vector3 {
+                x: closest_record.normal.x + 1.0,
+                y: closest_record.normal.y + 1.0,
+                z: closest_record.normal.z + 1.0,
+            }
+        }
+        None => {
+            // Create a background color
+            let unit_vector = Vector3::calc_normalized_vector(&ray_in.direction);
 
-        blended
+            let white = Vector3 {
+                x: 1.0,
+                y: 1.0,
+                z: 1.0,
+            };
+            let blue = Vector3 {
+                x: 0.5,
+                y: 0.7,
+                z: 1.0,
+            };
+
+            let lerp_value = (unit_vector.y + 1.0) / 2.0; // Y value has a range of -1.0 to 1.0, and we map that to 0.0 to 1.0 
+            let blended = (1.0 - lerp_value) * white + lerp_value * blue;
+
+            blended
+        }
     }
 }
 
@@ -107,6 +125,28 @@ fn main() {
         )
     };
 
+    // World geometries and materials
+    let spheres = {
+        vec![
+            Sphere::new(
+                Vector3 {
+                    x: 0.0,
+                    y: 0.0,
+                    z: -1.0,
+                },
+                0.5,
+            ),
+            Sphere::new(
+                Vector3 {
+                    x: 0.0,
+                    y: -100.5,
+                    z: -1.0,
+                },
+                100.0,
+            ),
+        ]
+    };
+
     // Render
     {
         // ppm format preamble
@@ -127,7 +167,7 @@ fn main() {
                     origin: camera_center,
                     direction: current_pixel - camera_center,
                 };
-                let color = ray_color(&ray);
+                let color = ray_color(&ray, &spheres);
                 write_color(&color);
             }
         }
