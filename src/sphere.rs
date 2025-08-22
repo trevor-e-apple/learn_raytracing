@@ -33,9 +33,11 @@ pub fn hit_sphere(ray_in: &Ray, sphere_in: &Sphere, tmin: f64, tmax: f64) -> Opt
         return None;
     }
 
-    // Find a root within the valid range
+    // Find the closest root within the valid range
     let discriminant_sqrt = discriminant.sqrt();
     let t = {
+        // By computing the subtraction first, we don't need to compare the two solutions to determine which one is closer.
+        // If the subtraction is a valid solution, then it is the closest solution.
         let t = (h - discriminant_sqrt) / a;
 
         if t <= tmin || t >= tmax {
