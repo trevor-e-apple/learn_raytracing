@@ -20,12 +20,10 @@ fn ray_color(ray_in: &Ray, spheres: &Vec<Sphere>) -> Vector3 {
         let mut closest_record: Option<HitRecord> = None;
         let mut closest = std::f64::INFINITY;
         for sphere_geometry in spheres {
-            match hit_sphere(ray_in, sphere_geometry, 0.0, std::f64::INFINITY) {
+            match hit_sphere(ray_in, sphere_geometry, 0.0, closest) {
                 Some(record) => {
-                    if record.t < closest {
-                        closest = record.t;
-                        closest_record = Some(record);
-                    }
+                    closest = record.t;
+                    closest_record = Some(record);
                 }
                 None => {}
             }
