@@ -41,7 +41,11 @@ impl Vector3 {
 
     pub fn random_in_unit_disk(rng: &mut ThreadRng) -> Vector3 {
         loop {
-            let p = Vector3 {x: rng.random_range(-1.0..1.0), y: rng.random_range(-1.0..1.0), z: 0.0};
+            let p = Vector3 {
+                x: rng.random_range(-1.0..1.0),
+                y: rng.random_range(-1.0..1.0),
+                z: 0.0,
+            };
             if p.magnitude_squared() < 1.0 {
                 return p;
             }

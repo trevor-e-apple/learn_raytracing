@@ -23,14 +23,14 @@ pub struct Camera {
     max_depth: i32,
     look_from: Vector3,
     look_at: Vector3,
-    vup: Vector3, // Camera relative "up"
-    u: Vector3, // Camera frame basis vector
-    v: Vector3, // Camera frame basis vector
-    w: Vector3, // Camera frame basis vector
+    vup: Vector3,       // Camera relative "up"
+    u: Vector3,         // Camera frame basis vector
+    v: Vector3,         // Camera frame basis vector
+    w: Vector3,         // Camera frame basis vector
     defocus_angle: f64, // Variation angle of rays through each pixel
-    focus_dist: f64, // Distance from camera lookfrom point to plane of perfect focus
+    focus_dist: f64,    // Distance from camera lookfrom point to plane of perfect focus
     defocus_disk_u: Vector3,
-    defocus_disk_v: Vector3, 
+    defocus_disk_v: Vector3,
 }
 
 impl Camera {
