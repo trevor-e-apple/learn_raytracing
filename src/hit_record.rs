@@ -15,11 +15,7 @@ impl HitRecord {
     pub fn new(ray_in: &Ray, normal: Vector3, t: f64) -> Self {
         let point = ray::at(&ray_in, t);
         let front_face = Vector3::dot_product(&ray_in.direction, &normal) < 0.0;
-        let normal = if front_face {
-            normal
-        } else {
-            -1.0 * normal
-        };
+        let normal = if front_face { normal } else { -1.0 * normal };
 
         Self {
             point,
