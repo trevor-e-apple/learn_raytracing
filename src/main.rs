@@ -1,4 +1,8 @@
-use crate::{camera::{Camera, render}, sphere::Sphere, vector::Vector3};
+use crate::{
+    camera::{Camera, render},
+    sphere::Sphere,
+    vector::Vector3,
+};
 
 mod camera;
 mod hit_record;
@@ -12,10 +16,7 @@ mod vector;
 fn main() {
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
-    let camera = Camera::new(
-        aspect_ratio,
-        image_width,
-    );
+    let mut camera = Camera::new(aspect_ratio, image_width, 100);
 
     // World geometries and materials
     let spheres = {
@@ -40,5 +41,5 @@ fn main() {
     };
 
     // Render
-    render(&camera, &spheres);
+    render(&mut camera, &spheres);
 }

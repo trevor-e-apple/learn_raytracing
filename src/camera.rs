@@ -1,3 +1,5 @@
+use rand::{Rng, rngs::ThreadRng};
+
 use crate::{
     hit_record::HitRecord,
     ray::Ray,
@@ -6,16 +8,20 @@ use crate::{
 };
 
 pub struct Camera {
-    image_width: i32,
-    image_height: i32,
+    image_width: i32,  // The height of the image in pixels
+    image_height: i32, // The width of the image in pixels
     top_left_pixel: Vector3,
-    pixel_spacing_x: f64,
-    pixel_spacing_y: f64,
-    center: Vector3,
+    pixel_spacing_x: f64, // the horizontal space between two pixels
+    pixel_spacing_y: f64, // the veritcal space between two pixels
+    center: Vector3,      // the camera's center
+    pixel_sample_count: i32,
+    one_over_pixel_sample_count: f64,
+
+    rng: ThreadRng,
 }
 
 impl Camera {
-    pub fn new(aspect_ratio: f64, image_width: i32) -> Self {
+    pub fn new(aspect_ratio: f64, image_width: i32, pixel_sample_count: i32) -> Self {
         let image_height = {
             // Calculate the image height using the aspect ratio
             let image_height = (image_width as f64 / aspect_ratio) as i32;
@@ -57,6 +63,8 @@ impl Camera {
             (top_left_pixel, pixel_spacing_x, pixel_spacing_y, center)
         };
 
+        let camera_rng = ThreadRng::default();
+
         Self {
             image_width,
             image_height,
@@ -64,11 +72,14 @@ impl Camera {
             pixel_spacing_x,
             pixel_spacing_y,
             center,
+            pixel_sample_count,
+            one_over_pixel_sample_count: 1.0 / (pixel_sample_count as f64),
+            rng: camera_rng,
         }
     }
 }
 
-pub fn render(camera: &Camera, spheres: &Vec<Sphere>) {
+pub fn render(camera: &mut Camera, spheres: &Vec<Sphere>) {
     // ppm format preamble
     println!("P3");
     println!("{} {}", camera.image_width, camera.image_height);
@@ -83,12 +94,36 @@ pub fn render(camera: &Camera, spheres: &Vec<Sphere>) {
                 y: camera.top_left_pixel.y - (y as f64) * camera.pixel_spacing_y,
                 z: camera.top_left_pixel.z,
             };
-            let ray = Ray {
-                origin: camera.center,
-                direction: current_pixel - camera.center,
+
+            // find the color of the current pixel
+            let pixel_color = {
+                let mut average_color = Vector3 {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                };
+                for _ in 0..camera.pixel_sample_count {
+                    // Pick a random point in the unit square around the current pixel
+                    let sample_pixel = Vector3 {
+                        x: current_pixel.x
+                            + (camera.rng.random_range(-0.5..0.5) * camera.pixel_spacing_x),
+                        y: current_pixel.y
+                            + (camera.rng.random_range(-0.5..0.5) * camera.pixel_spacing_y),
+                        z: current_pixel.z,
+                    };
+                    let ray = Ray {
+                        origin: camera.center,
+                        direction: sample_pixel - camera.center,
+                    };
+                    average_color = average_color + ray_color(&ray, spheres);
+                }
+
+                average_color = camera.one_over_pixel_sample_count * average_color;
+
+                average_color
             };
-            let color = ray_color(&ray, spheres);
-            write_color(&color);
+
+            write_color(&pixel_color);
         }
     }
 }
