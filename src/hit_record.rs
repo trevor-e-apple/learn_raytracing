@@ -4,8 +4,8 @@ use crate::{
 };
 
 pub struct HitRecord {
-    pub point: Vector3,   // The point of intersection
-    
+    pub point: Vector3, // The point of intersection
+
     // The normal at the point of intersection. Normals always point out and are always unit vectors.
     pub normal: Vector3,
 

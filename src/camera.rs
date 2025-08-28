@@ -81,7 +81,7 @@ impl Camera {
 }
 
 /// Render the scene in the ppm format
-/// 
+///
 /// camera: The camera data structure
 /// spheres: The world geometry
 /// max_depth: The maximum number of reflections for each ray
@@ -121,7 +121,8 @@ pub fn render(camera: &mut Camera, spheres: &Vec<Sphere>, max_depth: i32) {
                         origin: camera.center,
                         direction: sample_pixel - camera.center,
                     };
-                    average_color = average_color + ray_color(&ray, spheres, &mut camera.rng, max_depth);
+                    average_color =
+                        average_color + ray_color(&ray, spheres, &mut camera.rng, max_depth);
                 }
 
                 average_color = camera.one_over_pixel_sample_count * average_color;
@@ -135,14 +136,18 @@ pub fn render(camera: &mut Camera, spheres: &Vec<Sphere>, max_depth: i32) {
 }
 
 /// Get the color of the scene for a ray
-/// 
+///
 /// ray_in: The ray to determine the reflection of
 /// spheres: The world geometries
 /// rng: An RNG for generating randomness in our reflections
 /// max_depth: The maximum number of remaining reflections to calculate
 fn ray_color(ray_in: &Ray, spheres: &Vec<Sphere>, rng: &mut ThreadRng, max_depth: i32) -> Vector3 {
     if max_depth <= 0 {
-        return Vector3 {x: 0.0, y: 0.0, z: 0.0}
+        return Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        };
     }
 
     // Find the closest geometry that the ray hit
@@ -153,7 +158,7 @@ fn ray_color(ray_in: &Ray, spheres: &Vec<Sphere>, rng: &mut ThreadRng, max_depth
             // Due to floating-point imprecision, occasionally the intersection point is not
             // exactly flush with the surface of the geometry. This can cause a ray to reflect
             // off of the surface that it is reflecting off of. We set tmin to some small value
-            // greater than 0.0 to avoid this. 
+            // greater than 0.0 to avoid this.
             match hit_sphere(ray_in, sphere_geometry, 0.001, closest) {
                 Some(record) => {
                     closest = record.t;
@@ -203,7 +208,7 @@ fn write_color(color: &Vector3) {
     let gamma_corrected_r = color.x.sqrt();
     let gamma_corrected_g = color.y.sqrt();
     let gamma_corrected_b = color.z.sqrt();
-    
+
     let r = (gamma_corrected_r * 255.99) as i32;
     let g = (gamma_corrected_g * 255.99) as i32;
     let b = (gamma_corrected_b * 255.99) as i32;
