@@ -199,9 +199,14 @@ fn ray_color(ray_in: &Ray, spheres: &Vec<Sphere>, rng: &mut ThreadRng, max_depth
 
 /// Write a color out to stdout for the ppm format
 fn write_color(color: &Vector3) {
-    let r = (color.x * 255.99) as i32;
-    let g = (color.y * 255.99) as i32;
-    let b = (color.z * 255.99) as i32;
+    // Gamma correct color first
+    let gamma_corrected_r = color.x.sqrt();
+    let gamma_corrected_g = color.y.sqrt();
+    let gamma_corrected_b = color.z.sqrt();
+    
+    let r = (gamma_corrected_r * 255.99) as i32;
+    let g = (gamma_corrected_g * 255.99) as i32;
+    let b = (gamma_corrected_b * 255.99) as i32;
 
     println!("{} {} {}", r, g, b);
 }
