@@ -18,6 +18,7 @@ fn main() {
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
     let mut camera = Camera::new(aspect_ratio, image_width, 100);
+    let max_depth = 50;
 
     // World geometries and materials
     let spheres = {
@@ -42,5 +43,5 @@ fn main() {
     };
 
     // Render
-    render(&mut camera, &spheres);
+    render(&mut camera, &spheres, max_depth);
 }

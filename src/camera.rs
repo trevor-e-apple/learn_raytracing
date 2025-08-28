@@ -80,7 +80,12 @@ impl Camera {
     }
 }
 
-pub fn render(camera: &mut Camera, spheres: &Vec<Sphere>) {
+/// Render the scene in the ppm format
+/// 
+/// camera: The camera data structure
+/// spheres: The world geometry
+/// max_depth: The maximum number of reflections for each ray
+pub fn render(camera: &mut Camera, spheres: &Vec<Sphere>, max_depth: i32) {
     // ppm format preamble
     println!("P3");
     println!("{} {}", camera.image_width, camera.image_height);
@@ -116,7 +121,7 @@ pub fn render(camera: &mut Camera, spheres: &Vec<Sphere>) {
                         origin: camera.center,
                         direction: sample_pixel - camera.center,
                     };
-                    average_color = average_color + ray_color(&ray, spheres, &mut camera.rng);
+                    average_color = average_color + ray_color(&ray, spheres, &mut camera.rng, max_depth);
                 }
 
                 average_color = camera.one_over_pixel_sample_count * average_color;
@@ -130,13 +135,26 @@ pub fn render(camera: &mut Camera, spheres: &Vec<Sphere>) {
 }
 
 /// Get the color of the scene for a ray
-fn ray_color(ray_in: &Ray, spheres: &Vec<Sphere>, rng: &mut ThreadRng) -> Vector3 {
+/// 
+/// ray_in: The ray to determine the reflection of
+/// spheres: The world geometries
+/// rng: An RNG for generating randomness in our reflections
+/// max_depth: The maximum number of remaining reflections to calculate
+fn ray_color(ray_in: &Ray, spheres: &Vec<Sphere>, rng: &mut ThreadRng, max_depth: i32) -> Vector3 {
+    if max_depth <= 0 {
+        return Vector3 {x: 0.0, y: 0.0, z: 0.0}
+    }
+
     // Find the closest geometry that the ray hit
     let closest_record = {
         let mut closest_record: Option<HitRecord> = None;
         let mut closest = std::f64::INFINITY;
         for sphere_geometry in spheres {
-            match hit_sphere(ray_in, sphere_geometry, 0.0, closest) {
+            // Due to floating-point imprecision, occasionally the intersection point is not
+            // exactly flush with the surface of the geometry. This can cause a ray to reflect
+            // off of the surface that it is reflecting off of. We set tmin to some small value
+            // greater than 0.0 to avoid this. 
+            match hit_sphere(ray_in, sphere_geometry, 0.001, closest) {
                 Some(record) => {
                     closest = record.t;
                     closest_record = Some(record);
@@ -154,7 +172,7 @@ fn ray_color(ray_in: &Ray, spheres: &Vec<Sphere>, rng: &mut ThreadRng) -> Vector
                 origin: closest_record.point,
                 direction: random_on_hemisphere(rng, closest_record.normal),
             };
-            0.5 * ray_color(&reflected_ray, spheres, rng)
+            0.5 * ray_color(&reflected_ray, spheres, rng, max_depth - 1)
         }
         None => {
             // Create a background color
