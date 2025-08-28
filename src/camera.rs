@@ -2,6 +2,7 @@ use rand::{Rng, rngs::ThreadRng};
 
 use crate::{
     hit_record::HitRecord,
+    random_vector::random_on_hemisphere,
     ray::Ray,
     sphere::{Sphere, hit_sphere},
     vector::Vector3,
@@ -115,7 +116,7 @@ pub fn render(camera: &mut Camera, spheres: &Vec<Sphere>) {
                         origin: camera.center,
                         direction: sample_pixel - camera.center,
                     };
-                    average_color = average_color + ray_color(&ray, spheres);
+                    average_color = average_color + ray_color(&ray, spheres, &mut camera.rng);
                 }
 
                 average_color = camera.one_over_pixel_sample_count * average_color;
@@ -129,7 +130,7 @@ pub fn render(camera: &mut Camera, spheres: &Vec<Sphere>) {
 }
 
 /// Get the color of the scene for a ray
-fn ray_color(ray_in: &Ray, spheres: &Vec<Sphere>) -> Vector3 {
+fn ray_color(ray_in: &Ray, spheres: &Vec<Sphere>, rng: &mut ThreadRng) -> Vector3 {
     // Find the closest geometry that the ray hit
     let closest_record = {
         let mut closest_record: Option<HitRecord> = None;
@@ -149,12 +150,11 @@ fn ray_color(ray_in: &Ray, spheres: &Vec<Sphere>) -> Vector3 {
 
     match closest_record {
         Some(closest_record) => {
-            // Map the normal vector (component's values [-1, 1]) to the color space (valued [0, 1])
-            0.5 * Vector3 {
-                x: closest_record.normal.x + 1.0,
-                y: closest_record.normal.y + 1.0,
-                z: closest_record.normal.z + 1.0,
-            }
+            let reflected_ray = Ray {
+                origin: closest_record.point,
+                direction: random_on_hemisphere(rng, closest_record.normal),
+            };
+            0.5 * ray_color(&reflected_ray, spheres, rng)
         }
         None => {
             // Create a background color

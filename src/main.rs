@@ -7,6 +7,7 @@ use crate::{
 mod camera;
 mod hit_record;
 mod math;
+mod random_vector;
 mod ray;
 mod sphere;
 mod vector;
