@@ -5,7 +5,10 @@ use crate::{
 
 pub struct HitRecord {
     pub point: Vector3,   // The point of intersection
-    pub normal: Vector3,  // The normal at the point of intersection. Normals always point out
+    
+    // The normal at the point of intersection. Normals always point out and are always unit vectors.
+    pub normal: Vector3,
+
     pub t: f64,           // The t value for the ray at the point of intersection
     pub front_face: bool, // Whether or not the ray intersected from the front face or the back face
 }

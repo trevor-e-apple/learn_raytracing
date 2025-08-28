@@ -2,7 +2,7 @@ use rand::{Rng, rngs::ThreadRng};
 
 use crate::{
     hit_record::HitRecord,
-    random_vector::random_on_hemisphere,
+    random_vector::random_vector,
     ray::Ray,
     sphere::{Sphere, hit_sphere},
     vector::Vector3,
@@ -170,7 +170,7 @@ fn ray_color(ray_in: &Ray, spheres: &Vec<Sphere>, rng: &mut ThreadRng, max_depth
         Some(closest_record) => {
             let reflected_ray = Ray {
                 origin: closest_record.point,
-                direction: random_on_hemisphere(rng, closest_record.normal),
+                direction: closest_record.normal + random_vector(rng),
             };
             0.5 * ray_color(&reflected_ray, spheres, rng, max_depth - 1)
         }
