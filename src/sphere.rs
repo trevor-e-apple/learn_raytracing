@@ -7,12 +7,17 @@ use crate::{
 pub struct Sphere {
     center: Vector3,
     radius: f64,
+    material: usize, // Handle to the material that was hit
 }
 
 impl Sphere {
-    pub fn new(center: Vector3, radius: f64) -> Self {
+    pub fn new(center: Vector3, radius: f64, material: usize) -> Self {
         assert!(radius > 0.0);
-        Self { center, radius }
+        Self {
+            center,
+            radius,
+            material,
+        }
     }
 }
 
@@ -55,5 +60,5 @@ pub fn hit_sphere(ray_in: &Ray, sphere_in: &Sphere, tmin: f64, tmax: f64) -> Opt
 
     let point = ray::at(&ray_in, t);
     let normal = (1.0 / radius) * (point - center);
-    return Some(HitRecord::new(ray_in, normal, t));
+    return Some(HitRecord::new(ray_in, normal, t, sphere_in.material));
 }

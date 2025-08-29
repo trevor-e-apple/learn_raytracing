@@ -1,11 +1,13 @@
 use crate::{
     camera::{Camera, render},
+    material::Material,
     sphere::Sphere,
     vector::Vector3,
 };
 
 mod camera;
 mod hit_record;
+mod material;
 mod math;
 mod random_vector;
 mod ray;
@@ -21,6 +23,9 @@ fn main() {
     let max_depth = 50;
 
     // World geometries and materials
+    let materials = vec![
+        Material::Diffuse(0.5), // Gray diffuse material
+    ];
     let spheres = {
         vec![
             Sphere::new(
@@ -30,6 +35,7 @@ fn main() {
                     z: -1.0,
                 },
                 0.5,
+                0,
             ),
             Sphere::new(
                 Vector3 {
@@ -38,10 +44,11 @@ fn main() {
                     z: -1.0,
                 },
                 100.0,
+                0,
             ),
         ]
     };
 
     // Render
-    render(&mut camera, &spheres, max_depth);
+    render(&mut camera, &spheres, &materials, max_depth);
 }

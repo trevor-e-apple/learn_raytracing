@@ -2,6 +2,7 @@ use rand::{Rng, rngs::ThreadRng};
 
 use crate::{
     hit_record::HitRecord,
+    material::{Material, scatter_ray},
     random_vector::random_vector,
     ray::Ray,
     sphere::{Sphere, hit_sphere},
@@ -84,8 +85,14 @@ impl Camera {
 ///
 /// camera: The camera data structure
 /// spheres: The world geometry
+/// materials: A reference to the materials data
 /// max_depth: The maximum number of reflections for each ray
-pub fn render(camera: &mut Camera, spheres: &Vec<Sphere>, max_depth: i32) {
+pub fn render(
+    camera: &mut Camera,
+    spheres: &Vec<Sphere>,
+    materials: &Vec<Material>,
+    max_depth: i32,
+) {
     // ppm format preamble
     println!("P3");
     println!("{} {}", camera.image_width, camera.image_height);
@@ -121,8 +128,8 @@ pub fn render(camera: &mut Camera, spheres: &Vec<Sphere>, max_depth: i32) {
                         origin: camera.center,
                         direction: sample_pixel - camera.center,
                     };
-                    average_color =
-                        average_color + ray_color(&ray, spheres, &mut camera.rng, max_depth);
+                    average_color = average_color
+                        + ray_color(&ray, spheres, &mut camera.rng, materials, max_depth);
                 }
 
                 average_color = camera.one_over_pixel_sample_count * average_color;
@@ -140,8 +147,15 @@ pub fn render(camera: &mut Camera, spheres: &Vec<Sphere>, max_depth: i32) {
 /// ray_in: The ray to determine the reflection of
 /// spheres: The world geometries
 /// rng: An RNG for generating randomness in our reflections
+/// materials: A reference to the materials data
 /// max_depth: The maximum number of remaining reflections to calculate
-fn ray_color(ray_in: &Ray, spheres: &Vec<Sphere>, rng: &mut ThreadRng, max_depth: i32) -> Vector3 {
+fn ray_color(
+    ray_in: &Ray,
+    spheres: &Vec<Sphere>,
+    rng: &mut ThreadRng,
+    materials: &Vec<Material>,
+    max_depth: i32,
+) -> Vector3 {
     if max_depth <= 0 {
         return Vector3 {
             x: 0.0,
@@ -173,11 +187,27 @@ fn ray_color(ray_in: &Ray, spheres: &Vec<Sphere>, rng: &mut ThreadRng, max_depth
 
     match closest_record {
         Some(closest_record) => {
-            let reflected_ray = Ray {
-                origin: closest_record.point,
-                direction: closest_record.normal + random_vector(rng),
-            };
-            0.5 * ray_color(&reflected_ray, spheres, rng, max_depth - 1)
+            let material = &materials[closest_record.material];
+            match scatter_ray(
+                material,
+                ray_in,
+                closest_record.point,
+                closest_record.normal,
+                rng,
+            ) {
+                Some((attenuation, reflected_ray)) => {
+                    // Recursively look up color of the reflected ray
+                    attenuation * ray_color(&reflected_ray, spheres, rng, materials, max_depth - 1)
+                }
+                None => {
+                    // Ray was absorbed
+                    Vector3 {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
+                    }
+                }
+            }
         }
         None => {
             // Create a background color
