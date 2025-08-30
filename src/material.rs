@@ -41,6 +41,8 @@ pub fn scatter_ray(
             Some((*albedo, scattered_ray))
         }
         Material::Metal(albedo) => {
+            // Note that the direction of the ray is in world space as well as the normal, so no 
+            // transforms are needed here. 
             let scattered_direction = reflect(&ray_in.direction, &hit_point_normal);
             let scattered_ray = Ray {
                 origin: hit_point,
