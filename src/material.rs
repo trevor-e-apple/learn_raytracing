@@ -17,9 +17,21 @@ pub fn scatter_ray(
 ) -> Option<(f64, Ray)> {
     match hit_material {
         Material::Diffuse(attenuation) => {
+            // We could either scatter with some probability, and if it doesn't scatter, it's absorbed
+            // completely. Or we could do what we do here: always scatter and have a constant attenuation.
+
+            // If the random vector is ~= -1.0 * hit_point_normal, this vector's magnitude
+            // can be ~= 0.0. This can cause issues, so we treat that as if it were the normal
+            let scattered_direction = hit_point_normal + random_vector(rng);
+            let scattered_direction = if scattered_direction.magnitude() < 1e-8 {
+                hit_point_normal
+            } else {
+                scattered_direction
+            };
+
             let reflected_ray = Ray {
                 origin: hit_point,
-                direction: hit_point_normal + random_vector(rng),
+                direction: scattered_direction,
             };
 
             Some((*attenuation, reflected_ray))
