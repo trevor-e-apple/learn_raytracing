@@ -2,8 +2,8 @@ use crate::vector::Vector3;
 
 #[derive(Clone, Default)]
 pub struct Ray {
-    pub origin: Vector3,
-    pub direction: Vector3,
+    pub origin: Vector3,    // The origin of the ray
+    pub direction: Vector3, // The ray target
 }
 
 /// Linearly interpolate between ray origin and direction

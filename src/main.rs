@@ -9,8 +9,8 @@ mod camera;
 mod hit_record;
 mod material;
 mod math;
-mod random_vector;
 mod ray;
+mod raytrace_vector;
 mod sphere;
 mod vector;
 
@@ -23,20 +23,48 @@ fn main() {
     let max_depth = 50;
 
     // World geometries and materials
-    let materials = vec![
-        Material::Diffuse(0.5), // Gray diffuse material
-    ];
+    let (materials, material_ground, material_center, material_left, material_right) = {
+        let mut materials = vec![];
+
+        let material_ground = materials.len();
+        materials.push(Material::Diffuse(Vector3 {
+            x: 0.8,
+            y: 0.8,
+            z: 0.0,
+        }));
+
+        let material_center = materials.len();
+        materials.push(Material::Diffuse(Vector3 {
+            x: 0.1,
+            y: 0.2,
+            z: 0.5,
+        }));
+
+        let material_left = materials.len();
+        materials.push(Material::Metal(Vector3 {
+            x: 0.8,
+            y: 0.8,
+            z: 0.8,
+        }));
+
+        let material_right = materials.len();
+        materials.push(Material::Metal(Vector3 {
+            x: 0.8,
+            y: 0.6,
+            z: 0.2,
+        }));
+
+        (
+            materials,
+            material_ground,
+            material_center,
+            material_left,
+            material_right,
+        )
+    };
+
     let spheres = {
         vec![
-            Sphere::new(
-                Vector3 {
-                    x: 0.0,
-                    y: 0.0,
-                    z: -1.0,
-                },
-                0.5,
-                0,
-            ),
             Sphere::new(
                 Vector3 {
                     x: 0.0,
@@ -44,7 +72,34 @@ fn main() {
                     z: -1.0,
                 },
                 100.0,
-                0,
+                material_ground,
+            ),
+            Sphere::new(
+                Vector3 {
+                    x: 0.0,
+                    y: 0.0,
+                    z: -1.2,
+                },
+                0.5,
+                material_center,
+            ),
+            Sphere::new(
+                Vector3 {
+                    x: -1.0,
+                    y: 0.0,
+                    z: -1.0,
+                },
+                0.5,
+                material_left
+            ),
+            Sphere::new(
+                Vector3 {
+                    x: 1.0,
+                    y: 0.0,
+                    z: -1.0,
+                },
+                0.5,
+                material_right
             ),
         ]
     };

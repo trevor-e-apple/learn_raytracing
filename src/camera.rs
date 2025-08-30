@@ -3,8 +3,8 @@ use rand::{Rng, rngs::ThreadRng};
 use crate::{
     hit_record::HitRecord,
     material::{Material, scatter_ray},
-    random_vector::random_vector,
     ray::Ray,
+    raytrace_vector::random_vector,
     sphere::{Sphere, hit_sphere},
     vector::Vector3,
 };
@@ -197,7 +197,13 @@ fn ray_color(
             ) {
                 Some((attenuation, reflected_ray)) => {
                     // Recursively look up color of the reflected ray
-                    attenuation * ray_color(&reflected_ray, spheres, rng, materials, max_depth - 1)
+                    let recursive_result =
+                        ray_color(&reflected_ray, spheres, rng, materials, max_depth - 1);
+                    Vector3 {
+                        x: recursive_result.x * attenuation.x,
+                        y: recursive_result.y * attenuation.y,
+                        z: recursive_result.z * attenuation.z,
+                    }
                 }
                 None => {
                     // Ray was absorbed

@@ -1,10 +1,14 @@
 use rand::rngs::ThreadRng;
 
-use crate::{random_vector::random_vector, ray::Ray, vector::Vector3};
+use crate::{
+    ray::Ray,
+    raytrace_vector::{random_vector, reflect},
+    vector::Vector3,
+};
 
 pub enum Material {
-    Diffuse(f64),
-    Metal,
+    Diffuse(Vector3),
+    Metal(Vector3),
 }
 
 /// Scatter a ray off of a material
@@ -14,9 +18,9 @@ pub fn scatter_ray(
     hit_point: Vector3,
     hit_point_normal: Vector3,
     rng: &mut ThreadRng,
-) -> Option<(f64, Ray)> {
+) -> Option<(Vector3, Ray)> {
     match hit_material {
-        Material::Diffuse(attenuation) => {
+        Material::Diffuse(albedo) => {
             // We could either scatter with some probability, and if it doesn't scatter, it's absorbed
             // completely. Or we could do what we do here: always scatter and have a constant attenuation.
 
@@ -29,15 +33,20 @@ pub fn scatter_ray(
                 scattered_direction
             };
 
-            let reflected_ray = Ray {
+            let scattered_ray = Ray {
                 origin: hit_point,
                 direction: scattered_direction,
             };
 
-            Some((*attenuation, reflected_ray))
+            Some((*albedo, scattered_ray))
         }
-        Material::Metal => {
-            todo!()
+        Material::Metal(albedo) => {
+            let scattered_direction = reflect(&ray_in.direction, &hit_point_normal);
+            let scattered_ray = Ray {
+                origin: hit_point,
+                direction: scattered_direction,
+            };
+            Some((*albedo, scattered_ray))
         }
     }
 }
