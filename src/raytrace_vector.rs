@@ -33,6 +33,6 @@ pub fn random_on_hemisphere(rng: &mut ThreadRng, normal: Vector3) -> Vector3 {
 /// Reflects the vector v off of a surface corresponding to the normal vector n.
 /// Assumes that n is a unit vector
 pub fn reflect(v: &Vector3, n: &Vector3) -> Vector3 {
-    let b = -1.0 * Vector3::dot_product(v, n);
+    let b = Vector3::dot_product(&(-1.0 * v), n);
     v + &(2.0 * b * n)
 }
