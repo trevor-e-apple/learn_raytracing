@@ -8,7 +8,7 @@ use crate::{
 
 pub enum Material {
     Diffuse(Vector3),
-    Metal(Vector3),
+    Metal(Vector3, f64),
 }
 
 /// Scatter a ray off of a material
@@ -40,11 +40,19 @@ pub fn scatter_ray(
 
             Some((*albedo, scattered_ray))
         }
-        Material::Metal(albedo) => {
-            let scattered_direction = reflect(&ray_in.direction, &hit_point_normal);
+        Material::Metal(albedo, fuzz) => {
+            let reflected = {
+                let mut reflected = reflect(&ray_in.direction, &hit_point_normal);
+
+                // Normalize the reflected ray's vector in order to have consistent magnitude
+                reflected.normalize();
+                // Add fuzz
+                reflected + (*fuzz * random_vector(rng))
+            };
+
             let scattered_ray = Ray {
                 origin: hit_point,
-                direction: scattered_direction,
+                direction: reflected,
             };
             Some((*albedo, scattered_ray))
         }

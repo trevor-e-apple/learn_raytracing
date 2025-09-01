@@ -4,7 +4,6 @@ use crate::{
     hit_record::HitRecord,
     material::{Material, scatter_ray},
     ray::Ray,
-    raytrace_vector::random_vector,
     sphere::{Sphere, hit_sphere},
     vector::Vector3,
 };

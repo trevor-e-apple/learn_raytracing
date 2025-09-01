@@ -41,18 +41,24 @@ fn main() {
         }));
 
         let material_left = materials.len();
-        materials.push(Material::Metal(Vector3 {
-            x: 0.8,
-            y: 0.8,
-            z: 0.8,
-        }));
+        materials.push(Material::Metal(
+            Vector3 {
+                x: 0.8,
+                y: 0.8,
+                z: 0.8,
+            },
+            0.3,
+        ));
 
         let material_right = materials.len();
-        materials.push(Material::Metal(Vector3 {
-            x: 0.8,
-            y: 0.6,
-            z: 0.2,
-        }));
+        materials.push(Material::Metal(
+            Vector3 {
+                x: 0.8,
+                y: 0.6,
+                z: 0.2,
+            },
+            1.0,
+        ));
 
         (
             materials,
@@ -90,7 +96,7 @@ fn main() {
                     z: -1.0,
                 },
                 0.5,
-                material_left
+                material_left,
             ),
             Sphere::new(
                 Vector3 {
@@ -99,7 +105,7 @@ fn main() {
                     z: -1.0,
                 },
                 0.5,
-                material_right
+                material_right,
             ),
         ]
     };
