@@ -2,13 +2,14 @@ use rand::rngs::ThreadRng;
 
 use crate::{
     ray::Ray,
-    raytrace_vector::{random_vector, reflect},
+    raytrace_vector::{random_vector, reflect, refract},
     vector::Vector3,
 };
 
 pub enum Material {
-    Diffuse(Vector3),
-    Metal(Vector3, f64),
+    Diffuse(Vector3), // albedo
+    Metal(Vector3, f64), // albedo, fuzz radius
+    Dielectric(f64), // index of refraction relative to air 
 }
 
 /// Scatter a ray off of a material
@@ -17,6 +18,7 @@ pub fn scatter_ray(
     ray_in: &Ray,
     hit_point: Vector3,
     hit_point_normal: Vector3,
+    front_face: bool,
     rng: &mut ThreadRng,
 ) -> Option<(Vector3, Ray)> {
     match hit_material {
@@ -55,6 +57,42 @@ pub fn scatter_ray(
                 direction: reflected,
             };
             Some((*albedo, scattered_ray))
+        }
+        Material::Dielectric(ri) => {
+            let attenuation = Vector3 {
+                x: 1.0,
+                y: 1.0,
+                z: 1.0,
+            };
+
+            let refraction_index = if front_face {
+                // If we hit the front face, we assume that we are hitting the glass from the air
+                1.0 / *ri
+            } else {
+                *ri
+            };
+
+            let unit_direction = Vector3::calc_normalized_vector(&ray_in.direction);
+
+            // Determine whether we need to reflect or refract
+            let direction = {
+                let cos_theta = f64::min(Vector3::dot_product(&(-1.0 * unit_direction), &hit_point_normal), 1.0);
+                let sin_theta = (1.0 - (cos_theta * cos_theta)).sqrt();
+
+                let cannot_refract = (refraction_index * sin_theta) > 1.0;
+
+                if cannot_refract {
+                    reflect(&unit_direction, &hit_point_normal)
+                } else {
+                    refract(&unit_direction, &hit_point_normal, refraction_index)
+                }
+            };
+
+            let scattered_ray = Ray {
+                origin: hit_point,
+                direction,
+            };
+            Some((attenuation, scattered_ray))
         }
     }
 }

@@ -41,14 +41,7 @@ fn main() {
         }));
 
         let material_left = materials.len();
-        materials.push(Material::Metal(
-            Vector3 {
-                x: 0.8,
-                y: 0.8,
-                z: 0.8,
-            },
-            0.3,
-        ));
+        materials.push(Material::Dielectric(1.0 / 1.33));
 
         let material_right = materials.len();
         materials.push(Material::Metal(

@@ -192,6 +192,7 @@ fn ray_color(
                 ray_in,
                 closest_record.point,
                 closest_record.normal,
+                closest_record.front_face,
                 rng,
             ) {
                 Some((attenuation, reflected_ray)) => {
