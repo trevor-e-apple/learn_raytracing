@@ -31,6 +31,8 @@ impl Camera {
         let theta = degrees_to_radians(vfov);
         let h = (theta / 2.0).tan();
 
+        // h is the opposite, focal length is the adjacent, hence the multiplication by focal length.
+        // The multiplication by 2.0 is because we want the height of the whole viewport, not half of it.
         let viewport_height = 2.0 * h * focal_length;
         // We don't reuse the aspect_ratio for calculating the viewport_width b/c that is the idealized ratio (not the actual ratio)
         let viewport_width = viewport_height * (image_width as f64 / image_height as f64);
