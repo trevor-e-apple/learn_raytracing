@@ -22,9 +22,12 @@ impl Sphere {
 }
 
 /// Determines whether the ray intersects the sphere centered at 'center' with radius 'radius' within [tmin, tmax].
+///
+/// Having a valid range for tmin and tmax allows us to avoid solutions behind the camera, avoid reflecting off the inside
+/// of the surface we're scattering off of, and also avoid solutions that are farther out than our closest solution.
+///
 /// Returns None if there is no intersection or Some(HitRecord).
 pub fn hit_sphere(ray_in: &Ray, sphere_in: &Sphere, tmin: f64, tmax: f64) -> Option<HitRecord> {
-    // TODO: please explain the value of tmin and tmax
     let center = sphere_in.center;
     let radius = sphere_in.radius;
 

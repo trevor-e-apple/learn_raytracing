@@ -1,4 +1,4 @@
-use rand::rngs::ThreadRng;
+use rand::{Rng, rngs::ThreadRng};
 
 use crate::{
     ray::Ray,
@@ -7,9 +7,9 @@ use crate::{
 };
 
 pub enum Material {
-    Diffuse(Vector3), // albedo
+    Diffuse(Vector3),    // albedo
     Metal(Vector3, f64), // albedo, fuzz radius
-    Dielectric(f64), // index of refraction relative to air 
+    Dielectric(f64),     // The ratio of the enclosed media's eta to the enclosing media's eta
 }
 
 /// Scatter a ray off of a material
@@ -76,12 +76,17 @@ pub fn scatter_ray(
 
             // Determine whether we need to reflect or refract
             let direction = {
-                let cos_theta = f64::min(Vector3::dot_product(&(-1.0 * unit_direction), &hit_point_normal), 1.0);
+                let cos_theta = f64::min(
+                    Vector3::dot_product(&(-1.0 * unit_direction), &hit_point_normal),
+                    1.0,
+                );
                 let sin_theta = (1.0 - (cos_theta * cos_theta)).sqrt();
 
                 let cannot_refract = (refraction_index * sin_theta) > 1.0;
 
-                if cannot_refract {
+                if cannot_refract
+                    || reflectance(cos_theta, refraction_index) > rng.random_range(0.0..1.0)
+                {
                     reflect(&unit_direction, &hit_point_normal)
                 } else {
                     refract(&unit_direction, &hit_point_normal, refraction_index)
@@ -95,4 +100,12 @@ pub fn scatter_ray(
             Some((attenuation, scattered_ray))
         }
     }
+}
+
+/// Calculates the reflectance of a dielectric material using Schlick's approximation.
+fn reflectance(cos_theta: f64, refraction_index: f64) -> f64 {
+    let r0 = (1.0 - refraction_index) / (1.0 + refraction_index);
+    let r0 = r0 * r0;
+
+    r0 + (1.0 - r0) * (1.0 - cos_theta).powi(5)
 }

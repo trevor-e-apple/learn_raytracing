@@ -23,7 +23,14 @@ fn main() {
     let max_depth = 50;
 
     // World geometries and materials
-    let (materials, material_ground, material_center, material_left, material_right) = {
+    let (
+        materials,
+        material_ground,
+        material_center,
+        material_left,
+        material_right,
+        material_bubble,
+    ) = {
         let mut materials = vec![];
 
         let material_ground = materials.len();
@@ -41,7 +48,7 @@ fn main() {
         }));
 
         let material_left = materials.len();
-        materials.push(Material::Dielectric(1.0 / 1.33));
+        materials.push(Material::Dielectric(1.5));
 
         let material_right = materials.len();
         materials.push(Material::Metal(
@@ -53,12 +60,16 @@ fn main() {
             1.0,
         ));
 
+        let material_bubble = materials.len();
+        materials.push(Material::Dielectric(1.0 / 1.5));
+
         (
             materials,
             material_ground,
             material_center,
             material_left,
             material_right,
+            material_bubble,
         )
     };
 
@@ -90,6 +101,15 @@ fn main() {
                 },
                 0.5,
                 material_left,
+            ),
+            Sphere::new(
+                Vector3 {
+                    x: -1.0,
+                    y: 0.0,
+                    z: -1.0,
+                },
+                0.4,
+                material_bubble,
             ),
             Sphere::new(
                 Vector3 {
