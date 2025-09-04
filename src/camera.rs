@@ -1,17 +1,24 @@
 use rand::{Rng, rngs::ThreadRng};
 
 use crate::{
-    hit_record::HitRecord, material::{scatter_ray, Material}, math::degrees_to_radians, ray::Ray, sphere::{hit_sphere, Sphere}, vector::Vector3
+    hit_record::HitRecord,
+    material::{Material, scatter_ray},
+    math::degrees_to_radians,
+    ray::Ray,
+    sphere::{Sphere, hit_sphere},
+    vector::{Vector3, calc_cross_product},
 };
 
 pub struct Camera {
     image_width: i32,  // The height of the image in pixels
     image_height: i32, // The width of the image in pixels
-    vfov: f64, // Vertical field of view
+    vfov: f64,         // Vertical field of view
     top_left_pixel: Vector3,
-    pixel_spacing_x: f64, // the horizontal space between two pixels
-    pixel_spacing_y: f64, // the veritcal space between two pixels
-    center: Vector3,      // the camera's center
+    pixel_spacing_u: Vector3, // The vector to add to a pixel to get the next horizontal pixel
+    pixel_spacing_v: Vector3, // The vector to add to a pixel to get the next vertical pixel
+    center: Vector3,          // The camera's center
+    look_at: Vector3,
+    vup: Vector3,
     pixel_sample_count: i32,
     one_over_pixel_sample_count: f64,
 
@@ -19,7 +26,15 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(aspect_ratio: f64, image_width: i32, vfov: f64, pixel_sample_count: i32) -> Self {
+    pub fn new(
+        center: Vector3,
+        look_at: Vector3,
+        vup: Vector3,
+        aspect_ratio: f64,
+        image_width: i32,
+        vfov: f64,
+        pixel_sample_count: i32,
+    ) -> Self {
         let image_height = {
             // Calculate the image height using the aspect ratio
             let image_height = (image_width as f64 / aspect_ratio) as i32;
@@ -27,7 +42,7 @@ impl Camera {
         };
 
         // Calculate the height of the viewport
-        let focal_length = 1.0;
+        let focal_length = (center - look_at).magnitude();
         let theta = degrees_to_radians(vfov);
         let h = (theta / 2.0).tan();
 
@@ -37,28 +52,47 @@ impl Camera {
         // We don't reuse the aspect_ratio for calculating the viewport_width b/c that is the idealized ratio (not the actual ratio)
         let viewport_width = viewport_height * (image_width as f64 / image_height as f64);
 
-        let center = Vector3 {
-            x: 0.0,
-            y: 0.0,
-            z: 0.0,
+        // Calculate the vectors for our camera's coordinate system
+        let (u, v, w) = {
+            // Our coordinate system is right-handed, so vector w goes from the viewport towards the center
+            let w = Vector3::calc_normalized_vector(&(center - look_at));
+            let u = Vector3::calc_normalized_vector(&calc_cross_product(&vup, &w));
+            let v = calc_cross_product(&w, &u);
+
+            (u, v, w)
         };
 
+        let viewport_u = viewport_width * u;
+        let viewport_v = -1.0 * viewport_height * v;
+
         // Pixels are inset by half the pixel-to-pixel distance so that the viewport area is evenly divided into width x height regions
-        let pixel_spacing_x = viewport_width / (image_width as f64);
-        let pixel_spacing_y = viewport_height / (image_height as f64);
+        let pixel_spacing_u = (1.0 / (image_width as f64)) * viewport_u;
+        let pixel_spacing_v = (1.0 / (image_height as f64)) * viewport_v; // Negative since we go "down" the viewport
+
         let top_left_pixel = {
+            // let viewport_upper_left = center
+            //     + Vector3 {
+            //         x: -1.0 * viewport_width / 2.0,
+            //         y: viewport_height / 2.0,
+            //         z: -1.0 * focal_length,
+            //     };
+            // viewport_upper_left
+            //     + Vector3 {
+            //         x: pixel_spacing_x / 2.0,
+            //         y: pixel_spacing_y / 2.0,
+            //         z: 0.0,
+            //     }
+
+            // Term 1 is subtracted because w points away from the viewport
+            // Term 2 is subtracted because we want the "leftmost" column, and u points to the "right"
+            // Term 3 is subtracted because we want the "top" row, and v points "down"
             let viewport_upper_left = center
-                + Vector3 {
-                    x: -1.0 * viewport_width / 2.0,
-                    y: viewport_height / 2.0,
-                    z: -1.0 * focal_length,
-                };
-            viewport_upper_left
-                + Vector3 {
-                    x: pixel_spacing_x / 2.0,
-                    y: pixel_spacing_y / 2.0,
-                    z: 0.0,
-                }
+                - (focal_length * w)
+                - (0.5 * viewport_u)
+                - (0.5 * viewport_v);
+
+            // We need to inset the top-left pixel
+            viewport_upper_left + 0.5 * pixel_spacing_u + 0.5 * pixel_spacing_v
         };
 
         let camera_rng = ThreadRng::default();
@@ -68,9 +102,11 @@ impl Camera {
             image_height,
             vfov,
             top_left_pixel,
-            pixel_spacing_x,
-            pixel_spacing_y,
+            pixel_spacing_u,
+            pixel_spacing_v,
             center,
+            look_at,
+            vup,
             pixel_sample_count,
             one_over_pixel_sample_count: 1.0 / (pixel_sample_count as f64),
             rng: camera_rng,
@@ -99,11 +135,13 @@ pub fn render(
         eprintln!("Scanlines remaining: {}", camera.image_height - y);
         for x in 0..camera.image_width {
             // Note that we subtract the y values because we are going from the top down
-            let current_pixel = Vector3 {
-                x: camera.top_left_pixel.x + (x as f64) * camera.pixel_spacing_x,
-                y: camera.top_left_pixel.y - (y as f64) * camera.pixel_spacing_y,
-                z: camera.top_left_pixel.z,
-            };
+            let current_pixel =
+                camera.top_left_pixel + (x as f64) * camera.pixel_spacing_u + (y as f64) * camera.pixel_spacing_v;
+            // Vector3 {
+            //     x: camera.top_left_pixel.x + (x as f64) * camera.pixel_spacing_x,
+            //     y: camera.top_left_pixel.y - (y as f64) * camera.pixel_spacing_y,
+            //     z: camera.top_left_pixel.z,
+            // };
 
             // find the color of the current pixel
             let pixel_color = {
@@ -114,13 +152,16 @@ pub fn render(
                 };
                 for _ in 0..camera.pixel_sample_count {
                     // Pick a random point in the unit square around the current pixel
-                    let sample_pixel = Vector3 {
-                        x: current_pixel.x
-                            + (camera.rng.random_range(-0.5..0.5) * camera.pixel_spacing_x),
-                        y: current_pixel.y
-                            + (camera.rng.random_range(-0.5..0.5) * camera.pixel_spacing_y),
-                        z: current_pixel.z,
-                    };
+                    // let sample_pixel = Vector3 {
+                    //     x: current_pixel.x
+                    //         + (camera.rng.random_range(-0.5..0.5) * camera.pixel_spacing_x),
+                    //     y: current_pixel.y
+                    //         + (camera.rng.random_range(-0.5..0.5) * camera.pixel_spacing_y),
+                    //     z: current_pixel.z,
+                    // };
+                    let sample_pixel = current_pixel
+                        + camera.rng.random_range(-0.5..0.5) * camera.pixel_spacing_u
+                        + camera.rng.random_range(-0.5..0.5) * camera.pixel_spacing_v;
                     let ray = Ray {
                         origin: camera.center,
                         direction: sample_pixel - camera.center,

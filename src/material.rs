@@ -66,7 +66,7 @@ pub fn scatter_ray(
             };
 
             let refraction_index = if front_face {
-                // If we hit the front face, we assume that we are hitting the glass from the air
+                // If we hit the front face, we need to switch the refraction index to have enclosing media's eta over the enclosed media's
                 1.0 / *ri
             } else {
                 *ri
