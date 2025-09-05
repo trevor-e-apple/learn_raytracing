@@ -19,6 +19,21 @@ pub fn random_vector(rng: &mut ThreadRng) -> Vector3 {
     }
 }
 
+pub fn random_vector_in_unit_disk(rng: &mut ThreadRng) -> Vector3 {
+    loop {
+        let result = Vector3 {
+            x: rng.random_range(-1.0..1.0),
+            y: rng.random_range(-1.0..1.0),
+            z: 0.0,
+        };
+
+        // We need to make sure we don't square too small of a vector
+        if result.magnitude_squared() <= 1.0 {
+            return result;
+        }
+    }
+}
+
 /// Returns a random unit vector that faces the same hemisphere as a surface normal
 pub fn random_on_hemisphere(rng: &mut ThreadRng, normal: Vector3) -> Vector3 {
     let vector = random_vector(rng);

@@ -5,6 +5,7 @@ use crate::{
     material::{Material, scatter_ray},
     math::degrees_to_radians,
     ray::Ray,
+    raytrace_vector::random_vector_in_unit_disk,
     sphere::{Sphere, hit_sphere},
     vector::{Vector3, calc_cross_product},
 };
@@ -21,6 +22,10 @@ pub struct Camera {
     vup: Vector3,
     pixel_sample_count: i32,
     one_over_pixel_sample_count: f64,
+    defocus_angle: f64, // Variation angle in degrees of rays through each pixel. Determines the size of the defocus blur disk
+    defocus_disk_u: Vector3,
+    defocus_disk_v: Vector3,
+    focus_distance: f64, // Distance from the camera center to the plane of perfect focus
 
     rng: ThreadRng,
 }
@@ -30,6 +35,8 @@ impl Camera {
         center: Vector3,
         look_at: Vector3,
         vup: Vector3,
+        defocus_angle: f64,
+        focus_distance: f64,
         aspect_ratio: f64,
         image_width: i32,
         vfov: f64,
@@ -42,13 +49,12 @@ impl Camera {
         };
 
         // Calculate the height of the viewport
-        let focal_length = (center - look_at).magnitude();
         let theta = degrees_to_radians(vfov);
         let h = (theta / 2.0).tan();
 
         // h is the opposite, focal length is the adjacent, hence the multiplication by focal length.
         // The multiplication by 2.0 is because we want the height of the whole viewport, not half of it.
-        let viewport_height = 2.0 * h * focal_length;
+        let viewport_height = 2.0 * h * focus_distance;
         // We don't reuse the aspect_ratio for calculating the viewport_width b/c that is the idealized ratio (not the actual ratio)
         let viewport_width = viewport_height * (image_width as f64 / image_height as f64);
 
@@ -74,11 +80,16 @@ impl Camera {
             // Term 2 is subtracted because we want the "leftmost" column, and u points to the "right"
             // Term 3 is subtracted because we want the "top" row, and v points "down"
             let viewport_upper_left =
-                center - (focal_length * w) - (0.5 * viewport_u) - (0.5 * viewport_v);
+                center - (focus_distance * w) - (0.5 * viewport_u) - (0.5 * viewport_v);
 
             // We need to inset the top-left pixel
             viewport_upper_left + 0.5 * pixel_spacing_u + 0.5 * pixel_spacing_v
         };
+
+        // Calculate the camera defocus disk basis vectors
+        let defocus_radius = focus_distance * degrees_to_radians(defocus_angle / 2.0).tan();
+        let defocus_disk_u = defocus_radius * u;
+        let defocus_disk_v = defocus_radius * v;
 
         let camera_rng = ThreadRng::default();
 
@@ -95,6 +106,10 @@ impl Camera {
             pixel_sample_count,
             one_over_pixel_sample_count: 1.0 / (pixel_sample_count as f64),
             rng: camera_rng,
+            defocus_angle,
+            defocus_disk_u,
+            defocus_disk_v,
+            focus_distance,
         }
     }
 }
@@ -132,14 +147,28 @@ pub fn render(
                     z: 0.0,
                 };
                 for _ in 0..camera.pixel_sample_count {
-                    // Pick a random point in the unit square around the current pixel
+                    // Pick a random point in the unit square around the current pixel to send the ray through
                     let sample_pixel = current_pixel
                         + camera.rng.random_range(-0.5..0.5) * camera.pixel_spacing_u
                         + camera.rng.random_range(-0.5..0.5) * camera.pixel_spacing_v;
-                    let ray = Ray {
-                        origin: camera.center,
-                        direction: sample_pixel - camera.center,
+
+                    // Determine the ray origin based on the defocus angle
+                    let ray_origin = if camera.defocus_angle <= 0.0 {
+                        // Aperture has infinitesimal radius
+                        camera.center
+                    } else {
+                        let uv = random_vector_in_unit_disk(&mut camera.rng);
+                        let lens_point = camera.center
+                            + uv.x * camera.defocus_disk_u
+                            + uv.y * camera.defocus_disk_v;
+                        lens_point
                     };
+
+                    let ray = Ray {
+                        origin: ray_origin,
+                        direction: sample_pixel - ray_origin,
+                    };
+
                     average_color = average_color
                         + ray_color(&ray, spheres, &mut camera.rng, materials, max_depth);
                 }

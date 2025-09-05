@@ -35,9 +35,11 @@ fn main() {
             y: 1.0,
             z: 0.0,
         },
+        10.0,
+        3.4,
         aspect_ratio,
         image_width,
-        90.0,
+        20.0,
         100,
     );
     let max_depth = 50;
