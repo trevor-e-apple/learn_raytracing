@@ -70,26 +70,11 @@ impl Camera {
         let pixel_spacing_v = (1.0 / (image_height as f64)) * viewport_v; // Negative since we go "down" the viewport
 
         let top_left_pixel = {
-            // let viewport_upper_left = center
-            //     + Vector3 {
-            //         x: -1.0 * viewport_width / 2.0,
-            //         y: viewport_height / 2.0,
-            //         z: -1.0 * focal_length,
-            //     };
-            // viewport_upper_left
-            //     + Vector3 {
-            //         x: pixel_spacing_x / 2.0,
-            //         y: pixel_spacing_y / 2.0,
-            //         z: 0.0,
-            //     }
-
             // Term 1 is subtracted because w points away from the viewport
             // Term 2 is subtracted because we want the "leftmost" column, and u points to the "right"
             // Term 3 is subtracted because we want the "top" row, and v points "down"
-            let viewport_upper_left = center
-                - (focal_length * w)
-                - (0.5 * viewport_u)
-                - (0.5 * viewport_v);
+            let viewport_upper_left =
+                center - (focal_length * w) - (0.5 * viewport_u) - (0.5 * viewport_v);
 
             // We need to inset the top-left pixel
             viewport_upper_left + 0.5 * pixel_spacing_u + 0.5 * pixel_spacing_v
@@ -135,13 +120,9 @@ pub fn render(
         eprintln!("Scanlines remaining: {}", camera.image_height - y);
         for x in 0..camera.image_width {
             // Note that we subtract the y values because we are going from the top down
-            let current_pixel =
-                camera.top_left_pixel + (x as f64) * camera.pixel_spacing_u + (y as f64) * camera.pixel_spacing_v;
-            // Vector3 {
-            //     x: camera.top_left_pixel.x + (x as f64) * camera.pixel_spacing_x,
-            //     y: camera.top_left_pixel.y - (y as f64) * camera.pixel_spacing_y,
-            //     z: camera.top_left_pixel.z,
-            // };
+            let current_pixel = camera.top_left_pixel
+                + (x as f64) * camera.pixel_spacing_u
+                + (y as f64) * camera.pixel_spacing_v;
 
             // find the color of the current pixel
             let pixel_color = {
@@ -152,13 +133,6 @@ pub fn render(
                 };
                 for _ in 0..camera.pixel_sample_count {
                     // Pick a random point in the unit square around the current pixel
-                    // let sample_pixel = Vector3 {
-                    //     x: current_pixel.x
-                    //         + (camera.rng.random_range(-0.5..0.5) * camera.pixel_spacing_x),
-                    //     y: current_pixel.y
-                    //         + (camera.rng.random_range(-0.5..0.5) * camera.pixel_spacing_y),
-                    //     z: current_pixel.z,
-                    // };
                     let sample_pixel = current_pixel
                         + camera.rng.random_range(-0.5..0.5) * camera.pixel_spacing_u
                         + camera.rng.random_range(-0.5..0.5) * camera.pixel_spacing_v;
