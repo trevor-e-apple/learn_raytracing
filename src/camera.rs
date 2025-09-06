@@ -20,7 +20,7 @@ pub struct Camera {
     center: Vector3,          // The camera's center
     look_at: Vector3,
     vup: Vector3,
-    pixel_sample_count: i32,
+    pixel_sample_count: i32, // The number of points around a pixel to sample from
     one_over_pixel_sample_count: f64,
     defocus_angle: f64, // Variation angle in degrees of rays through each pixel. Determines the size of the defocus blur disk
     defocus_disk_u: Vector3,
