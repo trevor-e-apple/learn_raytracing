@@ -167,6 +167,7 @@ pub fn render(
                     let ray = Ray {
                         origin: ray_origin,
                         direction: sample_pixel - ray_origin,
+                        time: camera.rng.random_range(0.0..1.0), // Random time between 0.0 and 1.0
                     };
 
                     average_color = average_color

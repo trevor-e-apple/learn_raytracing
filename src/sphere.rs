@@ -5,16 +5,39 @@ use crate::{
 };
 
 pub struct Sphere {
-    center: Vector3,
+    center: Ray,
     radius: f64,
     material: usize, // Handle to the material that was hit
 }
 
 impl Sphere {
+    /// Create an unmoving sphere
     pub fn new(center: Vector3, radius: f64, material: usize) -> Self {
         assert!(radius > 0.0);
         Self {
-            center,
+            center: Ray {
+                origin: center,
+                direction: Vector3 {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                time: 0.0,
+            },
+            radius,
+            material,
+        }
+    }
+
+    /// Create a sphere that moves from center1 -> center2 over the course of t=0.0 -> t=1.0
+    pub fn new_moving(center1: Vector3, center2: Vector3, radius: f64, material: usize) -> Self {
+        assert!(radius > 0.0);
+        Self {
+            center: Ray {
+                origin: center1,
+                direction: center2 - center1,
+                time: 0.0,
+            },
             radius,
             material,
         }
@@ -28,10 +51,10 @@ impl Sphere {
 ///
 /// Returns None if there is no intersection or Some(HitRecord).
 pub fn hit_sphere(ray_in: &Ray, sphere_in: &Sphere, tmin: f64, tmax: f64) -> Option<HitRecord> {
-    let center = sphere_in.center;
+    let current_center = ray::at(&sphere_in.center, ray_in.time);
     let radius = sphere_in.radius;
 
-    let center_minus_origin = center - ray_in.origin;
+    let center_minus_origin = current_center - ray_in.origin;
     let a = ray_in.direction.magnitude_squared();
     let h = Vector3::dot_product(&ray_in.direction, &center_minus_origin);
     let c = Vector3::dot_product(&center_minus_origin, &center_minus_origin) - (radius * radius);
@@ -62,6 +85,6 @@ pub fn hit_sphere(ray_in: &Ray, sphere_in: &Sphere, tmin: f64, tmax: f64) -> Opt
     };
 
     let point = ray::at(&ray_in, t);
-    let normal = (1.0 / radius) * (point - center);
+    let normal = (1.0 / radius) * (point - current_center);
     return Some(HitRecord::new(ray_in, normal, t, sphere_in.material));
 }

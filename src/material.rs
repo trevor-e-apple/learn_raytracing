@@ -12,7 +12,9 @@ pub enum Material {
     Dielectric(f64),     // The ratio of the enclosed media's eta to the enclosing media's eta
 }
 
-/// Scatter a ray off of a material
+/// Scatter a ray off of a material.
+/// If the ray was complete absorbed, the function returns None.
+/// If the ray scatters, the function returns a Vector3 corresponding to the attenuation of the color and the scattered ray.s  
 pub fn scatter_ray(
     hit_material: &Material,
     ray_in: &Ray,
@@ -38,6 +40,7 @@ pub fn scatter_ray(
             let scattered_ray = Ray {
                 origin: hit_point,
                 direction: scattered_direction,
+                time: ray_in.time,
             };
 
             Some((*albedo, scattered_ray))
@@ -55,6 +58,7 @@ pub fn scatter_ray(
             let scattered_ray = Ray {
                 origin: hit_point,
                 direction: reflected,
+                time: ray_in.time,
             };
             Some((*albedo, scattered_ray))
         }
@@ -96,6 +100,7 @@ pub fn scatter_ray(
             let scattered_ray = Ray {
                 origin: hit_point,
                 direction,
+                time: ray_in.time,
             };
             Some((attenuation, scattered_ray))
         }
