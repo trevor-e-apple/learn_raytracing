@@ -7,6 +7,7 @@ use crate::{
     vector::Vector3,
 };
 
+mod aabb;
 mod camera;
 mod hit_record;
 mod material;
