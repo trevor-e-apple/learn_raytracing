@@ -1,4 +1,5 @@
 use crate::{
+    aabb::Aabb,
     hit_record::HitRecord,
     ray::{self, Ray},
     vector::Vector3,
@@ -8,12 +9,15 @@ pub struct Sphere {
     center: Ray,
     radius: f64,
     material: usize, // Handle to the material that was hit
+    bounding_box: Aabb,
 }
 
 impl Sphere {
     /// Create an unmoving sphere
     pub fn new(center: Vector3, radius: f64, material: usize) -> Self {
         assert!(radius > 0.0);
+        let radius_vector = Vector3 { x: radius, y: radius, z: radius };
+        let bounding_box = Aabb::new(center - radius_vector, center + radius_vector);
         Self {
             center: Ray {
                 origin: center,
@@ -26,12 +30,18 @@ impl Sphere {
             },
             radius,
             material,
+            bounding_box,
         }
     }
 
     /// Create a sphere that moves from center1 -> center2 over the course of t=0.0 -> t=1.0
     pub fn new_moving(center1: Vector3, center2: Vector3, radius: f64, material: usize) -> Self {
         assert!(radius > 0.0);
+        let radius_vector = Vector3 { x: radius, y: radius, z: radius };
+        let box1 = Aabb::new(center1 - radius_vector, center1 + radius_vector);
+        let box2 = Aabb::new(center2 - radius_vector, center2 + radius_vector);
+
+        let bounding_box = Aabb::from_boxes(&box1, &box2);
         Self {
             center: Ray {
                 origin: center1,
@@ -40,6 +50,7 @@ impl Sphere {
             },
             radius,
             material,
+            bounding_box,
         }
     }
 }
