@@ -2,13 +2,13 @@ use rand::{Rng, rngs::ThreadRng};
 
 use crate::{
     hit_record::HitRecord,
-    hittables::Hittables,
-    material::{Material, scatter_ray},
+    hittables::{get_hit_record, Hittables},
+    material::{scatter_ray, Material},
     math::degrees_to_radians,
     ray::Ray,
     raytrace_vector::random_vector_in_unit_disk,
-    sphere::{Sphere, hit_sphere},
-    vector::{Vector3, calc_cross_product},
+    sphere::{hit_sphere, Sphere},
+    vector::{calc_cross_product, Vector3},
 };
 
 pub struct Camera {
@@ -207,26 +207,11 @@ fn ray_color(
         };
     }
 
-    // Find the closest geometry that the ray hit
-    let closest_record = {
-        let mut closest_record: Option<HitRecord> = None;
-        let mut closest = std::f64::INFINITY;
-        for sphere_geometry in spheres {
-            // Due to floating-point imprecision, occasionally the intersection point is not
-            // exactly flush with the surface of the geometry. This can cause a ray to reflect
-            // off of the surface that it is reflecting off of. We set tmin to some small value
-            // greater than 0.0 to avoid this.
-            match hit_sphere(ray_in, sphere_geometry, 0.001, closest) {
-                Some(record) => {
-                    closest = record.t;
-                    closest_record = Some(record);
-                }
-                None => {}
-            }
-        }
-
-        closest_record
-    };
+    // Due to floating-point imprecision, occasionally the intersection point is not
+    // exactly flush with the surface of the geometry. This can cause a ray to reflect
+    // off of the surface that it is reflecting off of. We set tmin to some small value
+    // greater than 0.0 to avoid this.
+    let closest_record = get_hit_record(hittables, ray_in, 0.001, std::f64::INFINITY);
 
     match closest_record {
         Some(closest_record) => {
