@@ -2,6 +2,7 @@ use rand::{Rng, rngs::ThreadRng};
 
 use crate::{
     camera::{Camera, render},
+    hittables::Hittables,
     material::Material,
     sphere::Sphere,
     vector::Vector3,
@@ -10,6 +11,7 @@ use crate::{
 mod aabb;
 mod camera;
 mod hit_record;
+mod hittables;
 mod material;
 mod math;
 mod ray;
@@ -48,10 +50,10 @@ fn main() {
     let max_depth = 50;
 
     // World geometries and materials
-    let (materials, spheres) = {
+    let (materials, hittables) = {
         let mut world_rng = ThreadRng::default();
         let mut materials = vec![];
-        let mut spheres = vec![];
+        let mut hittables = Hittables::new();
 
         let material_ground = materials.len();
         materials.push(Material::Diffuse(Vector3 {
@@ -59,7 +61,7 @@ fn main() {
             y: 0.5,
             z: 0.5,
         }));
-        spheres.push(Sphere::new(
+        hittables.add_sphere(Sphere::new(
             Vector3 {
                 x: 0.0,
                 y: -1000.0,
@@ -100,7 +102,7 @@ fn main() {
                         materials.push(Material::Diffuse(albedo));
 
                         // These spheres are falling
-                        spheres.push(Sphere::new_moving(
+                        hittables.add_sphere(Sphere::new_moving(
                             center,
                             center
                                 + Vector3 {
@@ -122,13 +124,21 @@ fn main() {
                         let sphere_material = materials.len();
                         materials.push(Material::Metal(albedo, fuzz));
 
-                        spheres.push(Sphere::new(center, small_sphere_radius, sphere_material));
+                        hittables.add_sphere(Sphere::new(
+                            center,
+                            small_sphere_radius,
+                            sphere_material,
+                        ));
                     } else {
                         // Dielectric
                         let sphere_material = materials.len();
                         materials.push(Material::Dielectric(1.5));
 
-                        spheres.push(Sphere::new(center, small_sphere_radius, sphere_material));
+                        hittables.add_sphere(Sphere::new(
+                            center,
+                            small_sphere_radius,
+                            sphere_material,
+                        ));
                     }
                 }
             }
@@ -138,7 +148,7 @@ fn main() {
         {
             let material1 = materials.len();
             materials.push(Material::Dielectric(1.5));
-            spheres.push(Sphere::new(
+            hittables.add_sphere(Sphere::new(
                 Vector3 {
                     x: 0.0,
                     y: 1.0,
@@ -154,7 +164,7 @@ fn main() {
                 y: 0.2,
                 z: 0.1,
             }));
-            spheres.push(Sphere::new(
+            hittables.add_sphere(Sphere::new(
                 Vector3 {
                     x: -4.0,
                     y: 1.0,
@@ -173,7 +183,7 @@ fn main() {
                 },
                 0.0,
             ));
-            spheres.push(Sphere::new(
+            hittables.add_sphere(Sphere::new(
                 Vector3 {
                     x: 4.0,
                     y: 1.0,
@@ -184,9 +194,9 @@ fn main() {
             ));
         }
 
-        (materials, spheres)
+        (materials, hittables)
     };
 
     // Render
-    render(&mut camera, &spheres, &materials, max_depth);
+    render(&mut camera, &hittables, &materials, max_depth);
 }

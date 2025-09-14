@@ -1,6 +1,6 @@
 use crate::{ray::Ray, vector::Vector3};
 
-// Axis-aligned bounding box
+// Structure for axis-aligned bounding box
 pub struct Aabb {
     x0: f64,
     x1: f64,
@@ -12,23 +12,11 @@ pub struct Aabb {
 
 impl Aabb {
     pub fn new(a: Vector3, b: Vector3) -> Self {
-        let (x0, x1) = if a.x <= b.x {
-            (a.x, b.x)
-        } else {
-            (b.x, a.x)
-        };
+        let (x0, x1) = if a.x <= b.x { (a.x, b.x) } else { (b.x, a.x) };
 
-        let (y0, y1) = if a.y <= b.y {
-            (a.y, b.y)
-        } else {
-            (b.y, a.y)
-        };
+        let (y0, y1) = if a.y <= b.y { (a.y, b.y) } else { (b.y, a.y) };
 
-        let (z0, z1) = if a.z <= b.z {
-            (a.z, b.z)
-        } else {
-            (b.z, a.z)
-        };
+        let (z0, z1) = if a.z <= b.z { (a.z, b.z) } else { (b.z, a.z) };
 
         Self {
             x0,
@@ -41,36 +29,12 @@ impl Aabb {
     }
 
     pub fn from_boxes(a: &Self, b: &Self) -> Self {
-        let x0 = if a.x0 <= b.x0 {
-            a.x0
-        } else {
-            b.x0
-        };
-        let x1 = if a.x1 >= b.x1 {
-            a.x1
-        } else {
-            b.x1
-        };
-        let y0 = if a.y0 <= b.y0 {
-            a.y0
-        } else {
-            b.y0
-        };
-        let y1 = if a.y1 >= b.y1 {
-            a.y1
-        } else {
-            b.y1
-        };
-        let z0 = if a.z0 <= b.z0 {
-            a.z0
-        } else {
-            b.z0
-        };
-        let z1 = if a.z1 >= b.z1 {
-            a.z1
-        } else {
-            b.z1
-        };
+        let x0 = if a.x0 <= b.x0 { a.x0 } else { b.x0 };
+        let x1 = if a.x1 >= b.x1 { a.x1 } else { b.x1 };
+        let y0 = if a.y0 <= b.y0 { a.y0 } else { b.y0 };
+        let y1 = if a.y1 >= b.y1 { a.y1 } else { b.y1 };
+        let z0 = if a.z0 <= b.z0 { a.z0 } else { b.z0 };
+        let z1 = if a.z1 >= b.z1 { a.z1 } else { b.z1 };
         Self {
             x0,
             x1,
@@ -79,7 +43,7 @@ impl Aabb {
             z0,
             z1,
         }
-    } 
+    }
 }
 
 pub fn hit_aabb(bounding_box: &Aabb, r: &Ray, tmin: f64, tmax: f64) -> bool {

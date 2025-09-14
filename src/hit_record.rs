@@ -1,7 +1,4 @@
-use std::rc::Rc;
-
 use crate::{
-    material::Material,
     ray::{self, Ray},
     vector::Vector3,
 };

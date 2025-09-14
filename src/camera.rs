@@ -2,6 +2,7 @@ use rand::{Rng, rngs::ThreadRng};
 
 use crate::{
     hit_record::HitRecord,
+    hittables::Hittables,
     material::{Material, scatter_ray},
     math::degrees_to_radians,
     ray::Ray,
@@ -187,13 +188,13 @@ pub fn render(
 /// Get the color of the scene for a ray
 ///
 /// ray_in: The ray to determine the reflection of
-/// spheres: The world geometries
+/// hittables: The world geometries that can interact with rays
 /// rng: An RNG for generating randomness in our reflections
 /// materials: A reference to the materials data
 /// max_depth: The maximum number of remaining reflections to calculate
 fn ray_color(
     ray_in: &Ray,
-    spheres: &Vec<Sphere>,
+    hittables: &Hittables,
     rng: &mut ThreadRng,
     materials: &Vec<Material>,
     max_depth: i32,
