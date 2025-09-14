@@ -32,9 +32,3 @@ impl Hittables {
         handle
     }
 }
-
-/*
-    Strategy for searching for objects in space...
-
-    Maintain sorted lists of objects according to their axes 
- */
