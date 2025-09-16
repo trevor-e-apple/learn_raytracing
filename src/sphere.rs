@@ -5,10 +5,11 @@ use crate::{
     vector::Vector3,
 };
 
+#[derive(Clone)]
 pub struct Sphere {
-    center: Ray,
-    radius: f64,
-    material: usize, // Handle to the material that was hit
+    pub center: Ray,
+    pub radius: f64,
+    pub material: usize, // Handle to the material that was hit
     pub bounding_box: Aabb,
 }
 

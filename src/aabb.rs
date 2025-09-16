@@ -11,6 +11,12 @@ pub struct Aabb {
     z1: f64,
 }
 
+pub enum Axis {
+    X,
+    Y,
+    Z,
+}
+
 impl Aabb {
     pub fn new(a: Vector3, b: Vector3) -> Self {
         let (x0, x1) = if a.x <= b.x { (a.x, b.x) } else { (b.x, a.x) };
@@ -43,6 +49,28 @@ impl Aabb {
             y1,
             z0,
             z1,
+        }
+    }
+
+    pub fn get_center(&self) -> Vector3 {
+        let x_center = (self.x1 - self.x0) / 2.0;
+        let y_center = (self.y1 - self.y0) / 2.0;
+        let z_center = (self.z1 - self.z0) / 2.0;
+
+        Vector3 { x: x_center, y: y_center, z: z_center }
+    }
+
+    pub fn get_longest_axis(&self) -> Axis {
+        let x_len = self.x1 - self.x0;
+        let y_len = self.y1 - self.y0;
+        let z_len = self.z1 - self.z0;
+
+        if x_len > y_len && x_len > z_len {
+            Axis::X
+        } else if y_len > x_len && y_len > z_len {
+            Axis::Y
+        } else {
+            Axis::Z
         }
     }
 }
