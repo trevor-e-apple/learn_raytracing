@@ -1,14 +1,12 @@
 use rand::{Rng, rngs::ThreadRng};
 
 use crate::{
-    hit_record::HitRecord,
-    hittables::{get_hit_record, Hittables},
-    material::{scatter_ray, Material},
+    hittables::Hittables,
+    material::{Material, scatter_ray},
     math::degrees_to_radians,
     ray::Ray,
     raytrace_vector::random_vector_in_unit_disk,
-    sphere::{hit_sphere, Sphere},
-    vector::{calc_cross_product, Vector3},
+    vector::{Vector3, calc_cross_product},
 };
 
 pub struct Camera {
@@ -118,12 +116,12 @@ impl Camera {
 /// Render the scene in the ppm format
 ///
 /// camera: The camera data structure
-/// spheres: The world geometry
+/// hittables: The world geometries
 /// materials: A reference to the materials data
 /// max_depth: The maximum number of reflections for each ray
 pub fn render(
     camera: &mut Camera,
-    spheres: &Vec<Sphere>,
+    hittables: &mut Hittables,
     materials: &Vec<Material>,
     max_depth: i32,
 ) {
@@ -172,7 +170,7 @@ pub fn render(
                     };
 
                     average_color = average_color
-                        + ray_color(&ray, spheres, &mut camera.rng, materials, max_depth);
+                        + ray_color(&ray, hittables, &mut camera.rng, materials, max_depth);
                 }
 
                 average_color = camera.one_over_pixel_sample_count * average_color;
@@ -194,7 +192,7 @@ pub fn render(
 /// max_depth: The maximum number of remaining reflections to calculate
 fn ray_color(
     ray_in: &Ray,
-    hittables: &Hittables,
+    hittables: &mut Hittables,
     rng: &mut ThreadRng,
     materials: &Vec<Material>,
     max_depth: i32,
@@ -211,7 +209,7 @@ fn ray_color(
     // exactly flush with the surface of the geometry. This can cause a ray to reflect
     // off of the surface that it is reflecting off of. We set tmin to some small value
     // greater than 0.0 to avoid this.
-    let closest_record = get_hit_record(hittables, ray_in, 0.001, std::f64::INFINITY);
+    let closest_record = hittables.get_hit_record(ray_in, 0.001, std::f64::INFINITY);
 
     match closest_record {
         Some(closest_record) => {
@@ -227,7 +225,7 @@ fn ray_color(
                 Some((attenuation, reflected_ray)) => {
                     // Recursively look up color of the reflected ray
                     let recursive_result =
-                        ray_color(&reflected_ray, spheres, rng, materials, max_depth - 1);
+                        ray_color(&reflected_ray, hittables, rng, materials, max_depth - 1);
                     Vector3 {
                         x: recursive_result.x * attenuation.x,
                         y: recursive_result.y * attenuation.y,

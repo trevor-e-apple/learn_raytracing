@@ -50,7 +50,7 @@ fn main() {
     let max_depth = 50;
 
     // World geometries and materials
-    let (materials, hittables) = {
+    let (materials, mut hittables) = {
         let mut world_rng = ThreadRng::default();
         let mut materials = vec![];
         let mut hittables = Hittables::new();
@@ -198,5 +198,5 @@ fn main() {
     };
 
     // Render
-    render(&mut camera, &hittables, &materials, max_depth);
+    render(&mut camera, &mut hittables, &materials, max_depth);
 }

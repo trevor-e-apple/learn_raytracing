@@ -57,7 +57,11 @@ impl Aabb {
         let y_center = (self.y1 - self.y0) / 2.0;
         let z_center = (self.z1 - self.z0) / 2.0;
 
-        Vector3 { x: x_center, y: y_center, z: z_center }
+        Vector3 {
+            x: x_center,
+            y: y_center,
+            z: z_center,
+        }
     }
 
     pub fn get_longest_axis(&self) -> Axis {
