@@ -46,7 +46,7 @@ impl Hittables {
         handle
     }
 
-    pub fn add_node(&mut self, node: BvhNode) -> usize {
+    fn add_node(&mut self, node: BvhNode) -> usize {
         let handle = self.bvh_nodes.len();
         self.bvh_nodes.push(node);
         handle
