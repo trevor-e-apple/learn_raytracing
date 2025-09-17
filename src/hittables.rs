@@ -5,13 +5,12 @@ use crate::{
     hit_record::HitRecord,
     ray::Ray,
     sphere::{Sphere, hit_sphere},
-    vector::Vector3,
 };
 
 #[derive(Clone)]
 struct NodeData {
-    left: Option<usize>,
-    right: Option<usize>,
+    left: usize,
+    right: usize,
     bbox: Aabb,
 }
 
@@ -78,8 +77,8 @@ impl Hittables {
                 };
                 let all_bbox = bbox_from_spheres(&all_contained_objects);
                 self.add_node(BvhNode::Node(NodeData {
-                    left: None,
-                    right: None,
+                    left: 0,
+                    right: 0,
                     bbox: all_bbox,
                 }));
 
@@ -95,15 +94,16 @@ impl Hittables {
                             match &mut self.bvh_nodes[node_handle] {
                                 BvhNode::Node(node_data) => {
                                     if contained_objects.len() == 1 {
-                                        node_data.left = Some(expected_left_handle);
+                                        node_data.left = expected_left_handle;
+                                        node_data.right = expected_left_handle;
                                         // No need to put back on stack
                                     } else if contained_objects.len() == 2 {
-                                        node_data.left = Some(expected_left_handle);
-                                        node_data.right = Some(expected_right_handle);
+                                        node_data.left = expected_left_handle;
+                                        node_data.right = expected_right_handle;
                                         // No need to put back on stack
                                     } else {
-                                        node_data.left = Some(expected_left_handle);
-                                        node_data.right = Some(expected_right_handle);
+                                        node_data.left = expected_left_handle;
+                                        node_data.right = expected_right_handle;
                                     }
                                 }
                                 BvhNode::Object(_) => {
@@ -145,13 +145,13 @@ impl Hittables {
                                 let right_spheres = right_spheres.to_vec();
 
                                 self.add_node(BvhNode::Node(NodeData {
-                                    left: None,
-                                    right: None,
+                                    left: 0,
+                                    right: 0,
                                     bbox: bbox_from_spheres(&left_spheres),
                                 }));
                                 self.add_node(BvhNode::Node(NodeData {
-                                    left: None,
-                                    right: None,
+                                    left: 0,
+                                    right: 0,
                                     bbox: bbox_from_spheres(&right_spheres),
                                 }));
 
@@ -187,15 +187,8 @@ impl Hittables {
                     BvhNode::Node(node_data) => {
                         if hit_aabb(&node_data.bbox, ray_in, tmin, closest) {
                             // Add both left and right to the stack
-                            match node_data.left {
-                                Some(left_handle) => stack.push(left_handle),
-                                None => {} // Nothing to do
-                            }
-
-                            match node_data.right {
-                                Some(right_handle) => stack.push(right_handle),
-                                None => {} // Nothing to do
-                            }
+                            stack.push(node_data.left);
+                            stack.push(node_data.right);
                         } else {
                             // Do not modify stack if bounding box was not hit
                         }
