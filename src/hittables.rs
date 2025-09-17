@@ -185,7 +185,7 @@ impl Hittables {
 
                 match current_node {
                     BvhNode::Node(node_data) => {
-                        if hit_aabb(&node_data.bbox, ray_in, tmin, tmax) {
+                        if hit_aabb(&node_data.bbox, ray_in, tmin, closest) {
                             // Add both left and right to the stack
                             match node_data.left {
                                 Some(left_handle) => stack.push(left_handle),
