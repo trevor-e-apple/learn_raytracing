@@ -54,16 +54,72 @@ pub fn hit_aabb(bounding_box: &Aabb, r: &Ray, tmin: f64, tmax: f64) -> bool {
     let mut tmin = tmin;
     let mut tmax = tmax;
 
-    for axis in 0..3 {
-        let (axis_min, axis_max, origin_component, direction_component) = if axis == 0 {
-            (bounding_box.x0, bounding_box.x1, origin.x, direction.x)
-        } else if axis == 1 {
-            (bounding_box.y0, bounding_box.y1, origin.y, direction.y)
-        } else if axis == 2 {
-            (bounding_box.z0, bounding_box.z1, origin.z, direction.z)
+    // Test X
+    {
+        let (axis_min, axis_max, origin_component, direction_component) =
+            (bounding_box.x0, bounding_box.x1, origin.x, direction.x);
+
+        let adinv = 1.0 / direction_component;
+
+        let t0 = (axis_min - origin_component) * adinv;
+        let t1 = (axis_max - origin_component) * adinv;
+
+        if t0 < t1 {
+            if t0 > tmin {
+                tmin = t0;
+            }
+            if t1 < tmax {
+                tmax = t1;
+            }
         } else {
-            panic!("Unexpected axis value");
-        };
+            if t1 > tmin {
+                tmin = t1;
+            }
+            if t0 < tmax {
+                tmax = t0;
+            }
+        }
+
+        if tmax <= tmin {
+            return false;
+        }
+    }
+
+    // Test Y
+    {
+        let (axis_min, axis_max, origin_component, direction_component) =
+            (bounding_box.y0, bounding_box.y1, origin.y, direction.y);
+
+        let adinv = 1.0 / direction_component;
+
+        let t0 = (axis_min - origin_component) * adinv;
+        let t1 = (axis_max - origin_component) * adinv;
+
+        if t0 < t1 {
+            if t0 > tmin {
+                tmin = t0;
+            }
+            if t1 < tmax {
+                tmax = t1;
+            }
+        } else {
+            if t1 > tmin {
+                tmin = t1;
+            }
+            if t0 < tmax {
+                tmax = t0;
+            }
+        }
+
+        if tmax <= tmin {
+            return false;
+        }
+    }
+
+    // Text Z 
+    {
+        let (axis_min, axis_max, origin_component, direction_component) = 
+            (bounding_box.z0, bounding_box.z1, origin.z, direction.z);
 
         let adinv = 1.0 / direction_component;
 
