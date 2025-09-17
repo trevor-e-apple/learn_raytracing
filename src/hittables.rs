@@ -223,21 +223,13 @@ impl Hittables {
 
 /// Constructs an axis-aligned bounding box from a Vec of spheres
 fn bbox_from_spheres(spheres: &Vec<Sphere>) -> Aabb {
-    let mut result = Aabb::new(
-        Vector3 {
-            x: 0.0,
-            y: 0.0,
-            z: 0.0,
-        },
-        Vector3 {
-            x: 0.0,
-            y: 0.0,
-            z: 0.0,
-        },
-    );
-    for sphere in spheres {
-        result = Aabb::from_boxes(&result, &sphere.bounding_box);
+    if spheres.len() == 1 {
+        spheres[0].bounding_box.clone()
+    } else {
+        let mut result = Aabb::from_boxes(&spheres[0].bounding_box, &spheres[1].bounding_box);
+        for sphere in spheres {
+            result = Aabb::from_boxes(&result, &sphere.bounding_box);
+        }
+        result
     }
-
-    result
 }
