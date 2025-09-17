@@ -1,7 +1,7 @@
-use std::rc::Rc;
+use rand::{Rng, rngs::ThreadRng};
 
 use crate::{
-    aabb::{Aabb, Axis, hit_aabb},
+    aabb::{Aabb, hit_aabb},
     hit_record::HitRecord,
     ray::Ray,
     sphere::{Sphere, hit_sphere},
@@ -24,6 +24,7 @@ pub struct Hittables {
     objects: Vec<Sphere>,
     bvh_nodes: Vec<BvhNode>,
     root: Option<usize>,
+    rng: ThreadRng,
 }
 
 impl Hittables {
@@ -32,6 +33,7 @@ impl Hittables {
             objects: vec![],
             bvh_nodes: vec![],
             root: None,
+            rng: ThreadRng::default(),
         }
     }
 
@@ -116,26 +118,41 @@ impl Hittables {
                                 self.add_node(BvhNode::Object(contained_objects[0].clone()));
                                 self.add_node(BvhNode::Object(contained_objects[1].clone()));
                             } else {
-                                // Sort the objects by the longest axis
-                                match bbox_from_spheres(&contained_objects).get_longest_axis() {
-                                    Axis::X => contained_objects.sort_by(|a, b| {
-                                        a.bounding_box
-                                            .get_center()
-                                            .x
-                                            .total_cmp(&b.bounding_box.get_center().x)
-                                    }),
-                                    Axis::Y => contained_objects.sort_by(|a, b| {
-                                        a.bounding_box
-                                            .get_center()
-                                            .y
-                                            .total_cmp(&b.bounding_box.get_center().y)
-                                    }),
-                                    Axis::Z => contained_objects.sort_by(|a, b| {
-                                        a.bounding_box
-                                            .get_center()
-                                            .z
-                                            .total_cmp(&b.bounding_box.get_center().z)
-                                    }),
+                                // // Sort the objects by the longest axis
+                                // match bbox_from_spheres(&contained_objects).get_longest_axis() {
+                                //     Axis::X => contained_objects.sort_by(|a, b| {
+                                //         a.bounding_box
+                                //             .x0
+                                //             .total_cmp(&b.bounding_box.x0)
+                                //     }),
+                                //     Axis::Y => contained_objects.sort_by(|a, b| {
+                                //         a.bounding_box
+                                //             .y0
+                                //             .total_cmp(&b.bounding_box.y0)
+                                //     }),
+                                //     Axis::Z => contained_objects.sort_by(|a, b| {
+                                //         a.bounding_box
+                                //             .z0
+                                //             .total_cmp(&b.bounding_box.z0)
+                                //     }),
+                                // }
+
+                                // Sort the objects by a random axis
+                                {
+                                    let choice = self.rng.random_range(0..3);
+                                    if choice == 0 {
+                                        contained_objects.sort_by(|a, b| {
+                                            a.bounding_box.x0.total_cmp(&b.bounding_box.x0)
+                                        })
+                                    } else if choice == 1 {
+                                        contained_objects.sort_by(|a, b| {
+                                            a.bounding_box.y0.total_cmp(&b.bounding_box.y0)
+                                        })
+                                    } else {
+                                        contained_objects.sort_by(|a, b| {
+                                            a.bounding_box.z0.total_cmp(&b.bounding_box.z0)
+                                        })
+                                    }
                                 }
 
                                 // Put half of the objects in the left and half the objects in the right

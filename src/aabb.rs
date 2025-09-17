@@ -3,11 +3,11 @@ use crate::{ray::Ray, vector::Vector3};
 // Structure for axis-aligned bounding box
 #[derive(Clone)]
 pub struct Aabb {
-    x0: f64,
+    pub x0: f64,
     x1: f64,
-    y0: f64,
+    pub y0: f64,
     y1: f64,
-    z0: f64,
+    pub z0: f64,
     z1: f64,
 }
 
