@@ -13,11 +13,14 @@ pub struct HitRecord {
     pub front_face: bool, // Whether or not the ray intersected from the front face or the back face
 
     pub material: usize, // Handle to the material that was hit
+
+    pub u: f64,
+    pub v: f64,
 }
 
 impl HitRecord {
     /// Constructor for the hit record. 'normal' is assumed to have unit length.
-    pub fn new(ray_in: &Ray, normal: Vector3, t: f64, material: usize) -> Self {
+    pub fn new(ray_in: &Ray, normal: Vector3, t: f64, material: usize, u: f64, v: f64) -> Self {
         let point = ray::at(&ray_in, t);
         let front_face = Vector3::dot_product(&ray_in.direction, &normal) < 0.0;
         let normal = if front_face { normal } else { -1.0 * normal };
@@ -28,6 +31,8 @@ impl HitRecord {
             t,
             front_face,
             material,
+            u,
+            v,
         }
     }
 }

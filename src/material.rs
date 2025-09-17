@@ -1,13 +1,14 @@
 use rand::{Rng, rngs::ThreadRng};
 
 use crate::{
+    map::{self, get_map_value},
     ray::Ray,
     raytrace_vector::{random_vector, reflect, refract},
     vector::Vector3,
 };
 
 pub enum Material {
-    Diffuse(Vector3),    // albedo
+    Diffuse(map::Map),   // albedo
     Metal(Vector3, f64), // albedo, fuzz radius
     Dielectric(f64),     // The ratio of the enclosed media's eta to the enclosing media's eta
 }
@@ -21,10 +22,12 @@ pub fn scatter_ray(
     hit_point: Vector3,
     hit_point_normal: Vector3,
     front_face: bool,
+    u: f64,
+    v: f64,
     rng: &mut ThreadRng,
 ) -> Option<(Vector3, Ray)> {
     match hit_material {
-        Material::Diffuse(albedo) => {
+        Material::Diffuse(map_in) => {
             // We could either scatter with some probability, and if it doesn't scatter, it's absorbed
             // completely. Or we could do what we do here: always scatter and have a constant attenuation.
 
@@ -43,7 +46,9 @@ pub fn scatter_ray(
                 time: ray_in.time,
             };
 
-            Some((*albedo, scattered_ray))
+            let attenuation = get_map_value(map_in, u, v, hit_point);
+
+            Some((attenuation, scattered_ray))
         }
         Material::Metal(albedo, fuzz) => {
             let reflected = {

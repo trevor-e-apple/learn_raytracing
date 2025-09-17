@@ -116,9 +116,9 @@ pub fn hit_aabb(bounding_box: &Aabb, r: &Ray, tmin: f64, tmax: f64) -> bool {
         }
     }
 
-    // Text Z 
+    // Text Z
     {
-        let (axis_min, axis_max, origin_component, direction_component) = 
+        let (axis_min, axis_max, origin_component, direction_component) =
             (bounding_box.z0, bounding_box.z1, origin.z, direction.z);
 
         let adinv = 1.0 / direction_component;

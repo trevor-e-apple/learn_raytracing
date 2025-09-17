@@ -106,5 +106,12 @@ pub fn hit_sphere(ray_in: &Ray, sphere_in: &Sphere, tmin: f64, tmax: f64) -> Opt
 
     let point = ray::at(&ray_in, t);
     let normal = (1.0 / radius) * (point - current_center);
-    return Some(HitRecord::new(ray_in, normal, t, sphere_in.material));
+    return Some(HitRecord::new(
+        ray_in,
+        normal,
+        t,
+        sphere_in.material,
+        0.0,
+        0.0,
+    ));
 }

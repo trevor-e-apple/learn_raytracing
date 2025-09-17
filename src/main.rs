@@ -1,8 +1,11 @@
+use std::rc::Rc;
+
 use rand::{Rng, rngs::ThreadRng};
 
 use crate::{
     camera::{Camera, render},
     hittables::Hittables,
+    map::CheckerData,
     material::Material,
     sphere::Sphere,
     vector::Vector3,
@@ -12,6 +15,7 @@ mod aabb;
 mod camera;
 mod hit_record;
 mod hittables;
+mod map;
 mod material;
 mod math;
 mod ray;
@@ -52,15 +56,23 @@ fn main() {
     // World geometries and materials
     let (materials, mut hittables) = {
         let mut world_rng = ThreadRng::default();
-        let mut materials = vec![];
+        let mut materials: Vec<Material> = vec![];
         let mut hittables = Hittables::new();
 
         let material_ground = materials.len();
-        materials.push(Material::Diffuse(Vector3 {
-            x: 0.5,
-            y: 0.5,
-            z: 0.5,
-        }));
+        materials.push(Material::Diffuse(map::Map::Checker(CheckerData::new(
+            0.32,
+            Rc::new(map::Map::Color(Vector3 {
+                x: 0.2,
+                y: 0.3,
+                z: 0.1,
+            })),
+            Rc::new(map::Map::Color(Vector3 {
+                x: 0.9,
+                y: 0.9,
+                z: 0.9,
+            })),
+        ))));
         hittables.add_sphere(Sphere::new(
             Vector3 {
                 x: 0.0,
@@ -99,7 +111,7 @@ fn main() {
                             z: world_rng.random_range(0.0..1.0),
                         };
                         let sphere_material = materials.len();
-                        materials.push(Material::Diffuse(albedo));
+                        materials.push(Material::Diffuse(map::Map::Color(albedo)));
 
                         // These spheres are falling
                         hittables.add_sphere(Sphere::new_moving(
@@ -159,11 +171,11 @@ fn main() {
             ));
 
             let material2 = materials.len();
-            materials.push(Material::Diffuse(Vector3 {
+            materials.push(Material::Diffuse(map::Map::Color(Vector3 {
                 x: 0.4,
                 y: 0.2,
                 z: 0.1,
-            }));
+            })));
             hittables.add_sphere(Sphere::new(
                 Vector3 {
                     x: -4.0,
