@@ -25,7 +25,35 @@ mod vector;
 
 // We use a right-handed coordinate system
 
-fn bouncing_spheres() -> (Vec<Material>, Hittables) {
+fn bouncing_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
+    // Initialize camera
+    let aspect_ratio = 16.0 / 9.0;
+    let image_width = 400;
+    let camera = Camera::new(
+        Vector3 {
+            x: 13.0,
+            y: 2.0,
+            z: 3.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 1.0,
+            z: 0.0,
+        },
+        0.6,
+        10.0,
+        aspect_ratio,
+        image_width,
+        20.0,
+        100,
+    );
+    let max_depth = 50;
+
     let mut world_rng = ThreadRng::default();
     let mut materials: Vec<Material> = vec![];
     let mut hittables = Hittables::new();
@@ -107,21 +135,13 @@ fn bouncing_spheres() -> (Vec<Material>, Hittables) {
                     let sphere_material = materials.len();
                     materials.push(Material::Metal(albedo, fuzz));
 
-                    hittables.add_sphere(Sphere::new(
-                        center,
-                        small_sphere_radius,
-                        sphere_material,
-                    ));
+                    hittables.add_sphere(Sphere::new(center, small_sphere_radius, sphere_material));
                 } else {
                     // Dielectric
                     let sphere_material = materials.len();
                     materials.push(Material::Dielectric(1.5));
 
-                    hittables.add_sphere(Sphere::new(
-                        center,
-                        small_sphere_radius,
-                        sphere_material,
-                    ));
+                    hittables.add_sphere(Sphere::new(center, small_sphere_radius, sphere_material));
                 }
             }
         }
@@ -177,13 +197,14 @@ fn bouncing_spheres() -> (Vec<Material>, Hittables) {
         ));
     }
 
-    (materials, hittables)
+    (camera, materials, hittables, max_depth)
 }
 
-fn main() {
+fn checkered_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
+    // Initialize camera
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
-    let mut camera = Camera::new(
+    let camera = Camera::new(
         Vector3 {
             x: 13.0,
             y: 2.0,
@@ -199,7 +220,7 @@ fn main() {
             y: 1.0,
             z: 0.0,
         },
-        0.6,
+        0.0,
         10.0,
         aspect_ratio,
         image_width,
@@ -208,8 +229,41 @@ fn main() {
     );
     let max_depth = 50;
 
-    let (materials, mut hittables) = bouncing_spheres(); 
-    
+    // Initialize world
+    let mut world_rng = ThreadRng::default();
+    let mut materials: Vec<Material> = vec![];
+    let mut hittables = Hittables::new();
+
+    let checker = materials.len();
+    materials.push(Material::Diffuse(map::Map::Checker(CheckerData::new(
+        0.32,
+        Rc::new(map::Map::Color(Vector3 {
+            x: 0.2,
+            y: 0.3,
+            z: 0.1,
+        })),
+        Rc::new(map::Map::Color(Vector3 {
+            x: 0.9,
+            y: 0.9,
+            z: 0.9,
+        })),
+    ))));
+
+    hittables.add_sphere(Sphere::new(Vector3 { x: 0.0, y: -10.0, z: 0.0 }, 10.0, checker));
+    hittables.add_sphere(Sphere::new(Vector3 { x: 0.0, y: 10.0, z: 0.0 }, 10.0, checker));
+
+    (camera, materials, hittables, max_depth)
+}
+
+fn main() {
+    // Generate scene
+    let scene = 1;
+    let (mut camera, materials, mut hittables, max_depth) = if scene == 0 {
+        bouncing_spheres()
+    } else {
+        checkered_spheres()
+    };
+
     // Render
     render(&mut camera, &mut hittables, &materials, max_depth);
 }
