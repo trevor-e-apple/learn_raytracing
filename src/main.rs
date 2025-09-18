@@ -230,7 +230,6 @@ fn checkered_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
     let max_depth = 50;
 
     // Initialize world
-    let mut world_rng = ThreadRng::default();
     let mut materials: Vec<Material> = vec![];
     let mut hittables = Hittables::new();
 
