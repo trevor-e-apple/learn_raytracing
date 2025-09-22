@@ -254,6 +254,10 @@ fn checkered_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
     (camera, materials, hittables, max_depth)
 }
 
+fn globe() -> (Camera, Vec<Material>, Hittables, i32) {
+    todo!()
+}
+
 fn main() {
     // Generate scene
     let scene = 1;
