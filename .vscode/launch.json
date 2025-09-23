@@ -26,6 +26,24 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug executable 'learn_raycasting' with earthmap",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=learn_raycasting",
+                    "--package=learn_raycasting"
+                ],
+                "filter": {
+                    "name": "learn_raycasting",
+                    "kind": "bin"
+                }
+            },
+            "args": ["2", "./earthmap.jpg"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug unit tests in executable 'learn_raycasting'",
             "cargo": {
                 "args": [

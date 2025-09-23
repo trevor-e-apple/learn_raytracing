@@ -28,17 +28,25 @@ impl CheckerData {
 
 pub struct ImageData {
     pixels: Vec<u8>,
-    image_info: ImageInfo
+    image_info: ImageInfo,
 }
 
 impl ImageData {
     pub fn new(file_path: &str) -> Self {
-        let file_contents = fs::read(file_path).expect(&format!("Unable to read file path at {}", file_path));
+        let file_contents =
+            fs::read(file_path).expect(&format!("Unable to read file path at {}", file_path));
         let mut decoder = JpegDecoder::new(&file_contents);
-        let pixels = decoder.decode().expect(&format!("Unable to decode file contents of {}", file_path));
-        let info = decoder.info().expect("Unable to get image info after decoding");
+        let pixels = decoder
+            .decode()
+            .expect(&format!("Unable to decode file contents of {}", file_path));
+        let info = decoder
+            .info()
+            .expect("Unable to get image info after decoding");
 
-        Self { pixels, image_info: info }
+        Self {
+            pixels,
+            image_info: info,
+        }
     }
 }
 
@@ -62,7 +70,11 @@ pub fn get_map_value(map: &Map, u: f64, v: f64, p: Vector3) -> Vector3 {
 
             if info.height <= 0 {
                 // Debugging aid if info is invalid
-                return Vector3 { x: 0.0, y: 1.0, z: 1.0 };
+                return Vector3 {
+                    x: 1.0,
+                    y: 0.0,
+                    z: 1.0,
+                };
             }
 
             // Clamp input texture coordinates to [0, 1]
@@ -89,10 +101,16 @@ pub fn get_map_value(map: &Map, u: f64, v: f64, p: Vector3) -> Vector3 {
             let i = (u * info.width as f64) as usize;
             let j = (v * info.height as f64) as usize;
 
-            let r_index = j * (info.width as usize) + i;
-            let pixel_r = *pixels.get(r_index).expect(&format!("Failure to get pixel at ({}, {})", i, j));
-            let pixel_g = *pixels.get(r_index + 1).expect(&format!("Failure to get pixel at ({}, {})", i, j));
-            let pixel_b = *pixels.get(r_index + 2).expect(&format!("Failure to get pixel at ({}, {})", i, j));
+            let r_index = (3 * j) * (info.width as usize) + (3 * i);
+            let pixel_r = *pixels
+                .get(r_index)
+                .expect(&format!("Failure to get pixel at ({}, {})", i, j));
+            let pixel_g = *pixels
+                .get(r_index + 1)
+                .expect(&format!("Failure to get pixel at ({}, {})", i, j));
+            let pixel_b = *pixels
+                .get(r_index + 2)
+                .expect(&format!("Failure to get pixel at ({}, {})", i, j));
 
             let color_scale = 1.0 / 255.0; // For normalizing RGB values to [0.0, 1.0]
 

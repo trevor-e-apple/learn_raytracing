@@ -108,10 +108,10 @@ pub fn hit_sphere(ray_in: &Ray, sphere_in: &Sphere, tmin: f64, tmax: f64) -> Opt
     let normal = (1.0 / radius) * (point - current_center);
 
     let (u, v) = {
-        // Return u,v coordinates valued from [0, 1] based on 
+        // Return u,v coordinates valued from [0, 1] based on
         // phi (angle around the y-axis) having values from [0, 2 * pi] and theta (angle and the x-axis) having values from [0, pi].
-        let theta = (-1.0 * point.y).acos();
-        let phi = (-1.0 * point.z).atan2(point.x) + std::f64::consts::PI;
+        let theta = (-1.0 * normal.y).acos();
+        let phi = (-1.0 * normal.z).atan2(normal.x) + std::f64::consts::PI;
 
         let u = phi / (2.0 * std::f64::consts::PI);
         let v = theta / std::f64::consts::PI;
@@ -119,12 +119,5 @@ pub fn hit_sphere(ray_in: &Ray, sphere_in: &Sphere, tmin: f64, tmax: f64) -> Opt
         (u, v)
     };
 
-    return Some(HitRecord::new(
-        ray_in,
-        normal,
-        t,
-        sphere_in.material,
-        u,
-        v,
-    ));
+    return Some(HitRecord::new(ray_in, normal, t, sphere_in.material, u, v));
 }

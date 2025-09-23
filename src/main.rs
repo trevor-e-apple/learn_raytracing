@@ -1,11 +1,11 @@
-use std::rc::Rc;
+use std::{env, rc::Rc};
 
 use rand::{Rng, rngs::ThreadRng};
 
 use crate::{
     camera::{Camera, render},
     hittables::Hittables,
-    map::CheckerData,
+    map::{CheckerData, ImageData},
     material::Material,
     sphere::Sphere,
     vector::Vector3,
@@ -248,23 +248,95 @@ fn checkered_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
         })),
     ))));
 
-    hittables.add_sphere(Sphere::new(Vector3 { x: 0.0, y: -10.0, z: 0.0 }, 10.0, checker));
-    hittables.add_sphere(Sphere::new(Vector3 { x: 0.0, y: 10.0, z: 0.0 }, 10.0, checker));
+    hittables.add_sphere(Sphere::new(
+        Vector3 {
+            x: 0.0,
+            y: -10.0,
+            z: 0.0,
+        },
+        10.0,
+        checker,
+    ));
+    hittables.add_sphere(Sphere::new(
+        Vector3 {
+            x: 0.0,
+            y: 10.0,
+            z: 0.0,
+        },
+        10.0,
+        checker,
+    ));
 
     (camera, materials, hittables, max_depth)
 }
 
-fn globe() -> (Camera, Vec<Material>, Hittables, i32) {
-    todo!()
+fn globe(file_path: &str) -> (Camera, Vec<Material>, Hittables, i32) {
+    // Initialize camera
+    let aspect_ratio = 16.0 / 9.0;
+    let image_width = 400;
+    let camera = Camera::new(
+        Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 12.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 1.0,
+            z: 0.0,
+        },
+        0.0,
+        10.0,
+        aspect_ratio,
+        image_width,
+        20.0,
+        100,
+    );
+    let max_depth = 50;
+
+    // Initialize world
+    let mut materials: Vec<Material> = vec![];
+    let mut hittables = Hittables::new();
+
+    let earth_texture = materials.len();
+    materials.push(Material::Diffuse(map::Map::Image(ImageData::new(
+        file_path,
+    ))));
+    hittables.add_sphere(Sphere::new(
+        Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        },
+        2.0,
+        earth_texture,
+    ));
+
+    (camera, materials, hittables, max_depth)
 }
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    let scene: i32 = if args.len() == 1 {
+        0
+    } else {
+        args[1].parse().expect("Unable to parse scene arg")
+    };
+
     // Generate scene
-    let scene = 1;
     let (mut camera, materials, mut hittables, max_depth) = if scene == 0 {
         bouncing_spheres()
-    } else {
+    } else if scene == 1 {
         checkered_spheres()
+    } else {
+        let earth_image_path = &args[2];
+        globe(earth_image_path)
     };
 
     // Render
