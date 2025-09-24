@@ -18,6 +18,7 @@ mod hittables;
 mod map;
 mod material;
 mod math;
+mod perlin;
 mod ray;
 mod raytrace_vector;
 mod sphere;

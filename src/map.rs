@@ -2,12 +2,13 @@ use std::{fs, rc::Rc};
 
 use zune_jpeg::{ImageInfo, JpegDecoder};
 
-use crate::vector::Vector3;
+use crate::{perlin::Perlin, vector::Vector3};
 
 pub enum Map {
     Color(Vector3),
     Checker(CheckerData),
     Image(ImageData),
+    Noise(Perlin),
 }
 
 pub struct CheckerData {
@@ -119,6 +120,14 @@ pub fn get_map_value(map: &Map, u: f64, v: f64, p: Vector3) -> Vector3 {
                 y: color_scale * (pixel_g as f64),
                 z: color_scale * (pixel_b as f64),
             }
+        }
+        Map::Noise(noise) => {
+            noise.noise(&p)
+                * Vector3 {
+                    x: 1.0,
+                    y: 1.0,
+                    z: 1.0,
+                }
         }
     }
 }
