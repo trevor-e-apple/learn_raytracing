@@ -32,11 +32,11 @@ impl Perlin {
     }
 
     pub fn noise(&self, p: &Vector3) -> f64 {
-        let i = ((4.0 * p.x) as usize) & 255;
-        let j = ((4.0 * p.y) as usize) & 255;
-        let k = ((4.0 * p.z) as usize) & 255;
+        let i = ((4.0 * p.x) as i64) & 255;
+        let j = ((4.0 * p.y) as i64) & 255;
+        let k = ((4.0 * p.z) as i64) & 255;
 
-        self.rand_float[self.perm_x[i] ^ self.perm_y[j] ^ self.perm_z[k]]
+        self.rand_float[self.perm_x[i as usize] ^ self.perm_y[j as usize] ^ self.perm_z[k as usize]]
     }
 
     fn generate_perm(rng: &mut ThreadRng) -> [usize; POINT_COUNT] {
@@ -47,7 +47,7 @@ impl Perlin {
         }
 
         // Permute
-        for index in (0..p.len()).rev() {
+        for index in (1..p.len()).rev() {
             let target = rng.random_range(0..index);
             let tmp = p[index];
             p[index] = p[target];

@@ -7,6 +7,7 @@ use crate::{
     hittables::Hittables,
     map::{CheckerData, ImageData},
     material::Material,
+    perlin::Perlin,
     sphere::Sphere,
     vector::Vector3,
 };
@@ -321,6 +322,60 @@ fn globe(file_path: &str) -> (Camera, Vec<Material>, Hittables, i32) {
     (camera, materials, hittables, max_depth)
 }
 
+fn perlin_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
+    // Initialize camera
+    let camera = Camera::new(
+        Vector3 {
+            x: 13.0,
+            y: 2.0,
+            z: 3.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 1.0,
+            z: 0.0,
+        },
+        0.0,
+        10.0,
+        16.0 / 9.0,
+        400,
+        20.0,
+        100,
+    );
+    let max_depth = 50;
+
+    // Initialize world
+    let mut materials: Vec<Material> = vec![];
+    let mut hittables = Hittables::new();
+
+    let pertext = materials.len();
+    materials.push(Material::Diffuse(map::Map::Noise(Perlin::new())));
+
+    hittables.add_sphere(Sphere::new(
+        Vector3 {
+            x: 0.0,
+            y: -1000.0,
+            z: 0.0,
+        },
+        1000.0,
+        pertext,
+    ));
+    hittables.add_sphere(
+        Sphere::new(
+            Vector3 { x: 0.0, y: 2.0, z: 0.0 },
+            2.0,
+            pertext
+        )
+    );
+
+    (camera, materials, hittables, max_depth)
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -335,9 +390,11 @@ fn main() {
         bouncing_spheres()
     } else if scene == 1 {
         checkered_spheres()
-    } else {
+    } else if scene == 2 {
         let earth_image_path = &args[2];
         globe(earth_image_path)
+    } else {
+        perlin_spheres()
     };
 
     // Render
