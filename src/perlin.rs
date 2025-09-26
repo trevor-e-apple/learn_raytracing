@@ -32,11 +32,44 @@ impl Perlin {
     }
 
     pub fn noise(&self, p: &Vector3) -> f64 {
-        let i = ((4.0 * p.x) as i64) & 255;
-        let j = ((4.0 * p.y) as i64) & 255;
-        let k = ((4.0 * p.z) as i64) & 255;
+        let u = p.x - p.x.floor();
+        let v = p.y - p.y.floor();
+        let w = p.z - p.z.floor();
 
-        self.rand_float[self.perm_x[i as usize] ^ self.perm_y[j as usize] ^ self.perm_z[k as usize]]
+        let i = p.x.floor() as i64;
+        let j = p.y.floor() as i64;
+        let k = p.z.floor() as i64;
+
+        let mut c: [[[f64; 2]; 2]; 2] = [[[0.0; 2]; 2]; 2];
+        for di in 0..2 {
+            for dj in 0..2 {
+                for dk in 0..2 {
+                    c[di][dj][dk] = self.rand_float[self.perm_x
+                        [((i + (di as i64)) as usize) & 255]
+                        ^ self.perm_y[((j + (dj as i64)) as usize) & 255]
+                        ^ self.perm_z[((k + (dk as i64)) as usize) & 255]];
+                }
+            }
+        }
+
+        // Perform trilinear interpolation
+        {
+            let mut accumulation = 0.0;
+            for i in 0..2 {
+                for j in 0..2 {
+                    for k in 0..2 {
+                        accumulation += ((i as f64 * u) + ((1 - i) as f64) * (1.0 - u))
+                            * ((j as f64 * v) + ((1 - j) as f64) * (1.0 - v))
+                            * ((k as f64 * w) + ((1 - k) as f64) * (1.0 - w))
+                            * c[i][j][k];
+                    }
+                }
+            }
+
+            accumulation
+        }
+
+        // self.rand_float[self.perm_x[i as usize] ^ self.perm_y[j as usize] ^ self.perm_z[k as usize]]
     }
 
     fn generate_perm(rng: &mut ThreadRng) -> [usize; POINT_COUNT] {

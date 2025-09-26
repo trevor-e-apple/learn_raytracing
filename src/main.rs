@@ -365,13 +365,15 @@ fn perlin_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
         1000.0,
         pertext,
     ));
-    hittables.add_sphere(
-        Sphere::new(
-            Vector3 { x: 0.0, y: 2.0, z: 0.0 },
-            2.0,
-            pertext
-        )
-    );
+    hittables.add_sphere(Sphere::new(
+        Vector3 {
+            x: 0.0,
+            y: 2.0,
+            z: 0.0,
+        },
+        2.0,
+        pertext,
+    ));
 
     (camera, materials, hittables, max_depth)
 }
