@@ -122,7 +122,8 @@ pub fn get_map_value(map: &Map, u: f64, v: f64, p: Vector3) -> Vector3 {
             }
         }
         Map::Noise(noise, scale) => {
-            noise.noise(&(*scale * p))
+            // This expression maps the output of the noise function from [-1, 1] to [0, 1]
+            0.5 * (1.0 + noise.noise(&(*scale * p)))
                 * Vector3 {
                     x: 1.0,
                     y: 1.0,
