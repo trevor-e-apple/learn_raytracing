@@ -354,7 +354,7 @@ fn perlin_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
     let mut hittables = Hittables::new();
 
     let pertext = materials.len();
-    materials.push(Material::Diffuse(map::Map::Noise(Perlin::new())));
+    materials.push(Material::Diffuse(map::Map::Noise(Perlin::new(), 4.0)));
 
     hittables.add_sphere(Sphere::new(
         Vector3 {

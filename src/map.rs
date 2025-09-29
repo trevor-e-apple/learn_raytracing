@@ -8,7 +8,7 @@ pub enum Map {
     Color(Vector3),
     Checker(CheckerData),
     Image(ImageData),
-    Noise(Perlin),
+    Noise(Perlin, f64),
 }
 
 pub struct CheckerData {
@@ -121,8 +121,8 @@ pub fn get_map_value(map: &Map, u: f64, v: f64, p: Vector3) -> Vector3 {
                 z: color_scale * (pixel_b as f64),
             }
         }
-        Map::Noise(noise) => {
-            noise.noise(&p)
+        Map::Noise(noise, scale) => {
+            noise.noise(&(*scale * p))
                 * Vector3 {
                     x: 1.0,
                     y: 1.0,
