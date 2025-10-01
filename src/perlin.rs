@@ -87,6 +87,20 @@ impl Perlin {
         }
     }
 
+    pub fn turbulence(&self, p: &Vector3, depth: i32) -> f64 {
+        let mut accumulation: f64 = 0.0;
+        let mut temp_p = *p;
+        let mut weight = 1.0;
+
+        for _ in 0..depth {
+            accumulation += weight * self.noise(&temp_p);
+            weight *= 0.5;
+            temp_p = 2.0 * temp_p;
+        }
+
+        accumulation.abs()
+    }
+
     fn generate_perm(rng: &mut ThreadRng) -> [usize; POINT_COUNT] {
         let mut p: [usize; POINT_COUNT] = [0; POINT_COUNT];
 
