@@ -122,11 +122,11 @@ pub fn get_map_value(map: &Map, u: f64, v: f64, p: Vector3) -> Vector3 {
             }
         }
         Map::Noise(noise, scale) => {
-            noise.turbulence(&(*scale * p), 7)
+            (1.0 + (scale * p.z + 10.0 * noise.turbulence(&p, 7)).sin())
                 * Vector3 {
-                    x: 1.0,
-                    y: 1.0,
-                    z: 1.0,
+                    x: 0.5,
+                    y: 0.5,
+                    z: 0.5,
                 }
         }
     }
