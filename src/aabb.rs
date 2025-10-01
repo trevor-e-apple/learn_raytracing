@@ -4,11 +4,11 @@ use crate::{ray::Ray, vector::Vector3};
 #[derive(Clone)]
 pub struct Aabb {
     pub x0: f64,
-    x1: f64,
+    pub x1: f64,
     pub y0: f64,
-    y1: f64,
+    pub y1: f64,
     pub z0: f64,
-    z1: f64,
+    pub z1: f64,
 }
 
 impl Aabb {
@@ -19,14 +19,16 @@ impl Aabb {
 
         let (z0, z1) = if a.z <= b.z { (a.z, b.z) } else { (b.z, a.z) };
 
-        Self {
+        let mut result = Self {
             x0,
             x1,
             y0,
             y1,
             z0,
             z1,
-        }
+        };
+        result.pad();
+        result
     }
 
     pub fn from_boxes(a: &Self, b: &Self) -> Self {
@@ -36,13 +38,37 @@ impl Aabb {
         let y1 = if a.y1 >= b.y1 { a.y1 } else { b.y1 };
         let z0 = if a.z0 <= b.z0 { a.z0 } else { b.z0 };
         let z1 = if a.z1 >= b.z1 { a.z1 } else { b.z1 };
-        Self {
+
+        let mut result = Self {
             x0,
             x1,
             y0,
             y1,
             z0,
             z1,
+        };
+        result.pad();
+        result
+    }
+
+    fn expand(min: f64, max: f64, delta: f64) -> (f64, f64) {
+        let padding = delta / 2.0;
+        (min - padding, max + padding)
+    }
+
+    /// Adjust the bounding box so no side is narrower than some epsilon, padding if necessary
+    fn pad(&mut self) {
+        let epsilon = 0.0001;
+        if (self.x1 - self.x0) < epsilon {
+            (self.x0, self.x1) = Self::expand(self.x0, self.x1, epsilon);
+        }
+
+        if (self.y1 - self.y0) < epsilon {
+           (self.y0, self.y1) = Self::expand(self.y0, self.y1, epsilon); 
+        }
+
+        if (self.z1 - self.z0) < epsilon {
+           (self.z0, self.z1) = Self::expand(self.z0, self.z1, epsilon); 
         }
     }
 }
