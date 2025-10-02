@@ -20,6 +20,7 @@ mod map;
 mod material;
 mod math;
 mod perlin;
+mod quad;
 mod ray;
 mod raytrace_vector;
 mod sphere;

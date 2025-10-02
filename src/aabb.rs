@@ -64,11 +64,11 @@ impl Aabb {
         }
 
         if (self.y1 - self.y0) < epsilon {
-           (self.y0, self.y1) = Self::expand(self.y0, self.y1, epsilon); 
+            (self.y0, self.y1) = Self::expand(self.y0, self.y1, epsilon);
         }
 
         if (self.z1 - self.z0) < epsilon {
-           (self.z0, self.z1) = Self::expand(self.z0, self.z1, epsilon); 
+            (self.z0, self.z1) = Self::expand(self.z0, self.z1, epsilon);
         }
     }
 }

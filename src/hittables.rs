@@ -3,6 +3,7 @@ use rand::{Rng, rngs::ThreadRng};
 use crate::{
     aabb::{Aabb, hit_aabb},
     hit_record::HitRecord,
+    quad::{Quad, hit_quad},
     ray::Ray,
     sphere::{Sphere, hit_sphere},
 };
@@ -16,11 +17,11 @@ struct NodeData {
 
 enum BvhNode {
     Node(NodeData),
-    Object(Sphere),
+    Object(Hittable),
 }
 
 pub struct Hittables {
-    objects: Vec<Sphere>,
+    objects: Vec<Hittable>,
     bvh_nodes: Vec<BvhNode>,
     root: Option<usize>,
     rng: ThreadRng,
@@ -36,10 +37,10 @@ impl Hittables {
         }
     }
 
-    pub fn add_sphere(&mut self, s: Sphere) -> usize {
+    pub fn add_object(&mut self, object: Hittable) -> usize {
         // self.bbox = Aabb::from_boxes(&self.bbox, &s.bounding_box);
         let handle = self.objects.len();
-        self.objects.push(s);
+        self.objects.push(object);
 
         // Set root to None since we need to reconstruct it now
         self.root = None;
@@ -68,21 +69,21 @@ impl Hittables {
 
                 // Initialize stack
                 let all_contained_objects = {
-                    let mut all_contained_objects: Vec<Sphere> =
-                        Vec::<Sphere>::with_capacity(self.objects.len());
-                    for sphere in &self.objects {
-                        all_contained_objects.push(sphere.clone());
+                    let mut all_contained_objects: Vec<Hittable> =
+                        Vec::<Hittable>::with_capacity(self.objects.len());
+                    for object in &self.objects {
+                        all_contained_objects.push(object.clone());
                     }
                     all_contained_objects
                 };
-                let all_bbox = bbox_from_spheres(&all_contained_objects);
+                let all_bbox = bbox_from_objects(&all_contained_objects);
                 self.add_node(BvhNode::Node(NodeData {
                     left: 0,
                     right: 0,
                     bbox: all_bbox,
                 }));
 
-                let mut stack: Vec<(usize, Vec<Sphere>)> = vec![(0, all_contained_objects)];
+                let mut stack: Vec<(usize, Vec<Hittable>)> = vec![(0, all_contained_objects)];
 
                 loop {
                     match stack.pop() {
@@ -125,39 +126,45 @@ impl Hittables {
                                     let choice = self.rng.random_range(0..3);
                                     if choice == 0 {
                                         contained_objects.sort_by(|a, b| {
-                                            a.bounding_box.x0.total_cmp(&b.bounding_box.x0)
+                                            a.get_bounding_box()
+                                                .x0
+                                                .total_cmp(&b.get_bounding_box().x0)
                                         })
                                     } else if choice == 1 {
                                         contained_objects.sort_by(|a, b| {
-                                            a.bounding_box.y0.total_cmp(&b.bounding_box.y0)
+                                            a.get_bounding_box()
+                                                .y0
+                                                .total_cmp(&b.get_bounding_box().y0)
                                         })
                                     } else {
                                         contained_objects.sort_by(|a, b| {
-                                            a.bounding_box.z0.total_cmp(&b.bounding_box.z0)
+                                            a.get_bounding_box()
+                                                .z0
+                                                .total_cmp(&b.get_bounding_box().z0)
                                         })
                                     }
                                 }
 
                                 // Put half of the objects in the left and half the objects in the right
-                                let (left_spheres, right_spheres) =
+                                let (left_objects, right_objects) =
                                     contained_objects.split_at(contained_objects.len() / 2);
-                                let left_spheres = left_spheres.to_vec();
-                                let right_spheres = right_spheres.to_vec();
+                                let left_objects = left_objects.to_vec();
+                                let right_objects = right_objects.to_vec();
 
                                 self.add_node(BvhNode::Node(NodeData {
                                     left: 0,
                                     right: 0,
-                                    bbox: bbox_from_spheres(&left_spheres),
+                                    bbox: bbox_from_objects(&left_objects),
                                 }));
                                 self.add_node(BvhNode::Node(NodeData {
                                     left: 0,
                                     right: 0,
-                                    bbox: bbox_from_spheres(&right_spheres),
+                                    bbox: bbox_from_objects(&right_objects),
                                 }));
 
                                 // Add to the stack
-                                stack.push((expected_left_handle, left_spheres));
-                                stack.push((expected_right_handle, right_spheres));
+                                stack.push((expected_left_handle, left_objects));
+                                stack.push((expected_right_handle, right_objects));
                             }
                         }
                         None => break,
@@ -193,7 +200,7 @@ impl Hittables {
                             // Do not modify stack if bounding box was not hit
                         }
                     }
-                    BvhNode::Object(sphere_in) => {
+                    BvhNode::Object(object_in) => {
                         match hit_sphere(ray_in, sphere_in, tmin, closest) {
                             Some(hit_record) => {
                                 if hit_record.t < closest {
@@ -214,15 +221,40 @@ impl Hittables {
     }
 }
 
-/// Constructs an axis-aligned bounding box from a Vec of spheres
-fn bbox_from_spheres(spheres: &Vec<Sphere>) -> Aabb {
-    if spheres.len() == 1 {
-        spheres[0].bounding_box.clone()
+/// Constructs an axis-aligned bounding box from a Vec of hittable objects
+fn bbox_from_objects(objects: &Vec<Hittable>) -> Aabb {
+    if objects.len() == 1 {
+        objects[0].get_bounding_box()
     } else {
-        let mut result = Aabb::from_boxes(&spheres[0].bounding_box, &spheres[1].bounding_box);
-        for sphere in spheres {
-            result = Aabb::from_boxes(&result, &sphere.bounding_box);
+        let mut result = Aabb::from_boxes(
+            &objects[0].get_bounding_box(),
+            &objects[1].get_bounding_box(),
+        );
+        for object in objects {
+            result = Aabb::from_boxes(&result, &object.get_bounding_box());
         }
         result
+    }
+}
+
+#[derive(Clone)]
+enum Hittable {
+    Sphere(Sphere),
+    Quad(Quad),
+}
+
+impl Hittable {
+    fn get_bounding_box(&self) -> Aabb {
+        match self {
+            Hittable::Sphere(sphere) => sphere.bounding_box.clone(),
+            Hittable::Quad(quad) => quad.bounding_box.clone(),
+        }
+    }
+
+    fn hit(&self, ray_in: &Ray, tmin: f64, tmax: f64) -> Option<HitRecord> {
+        match self {
+            Hittable::Sphere(sphere) => hit_sphere(ray_in, sphere, tmin, tmax),
+            Hittable::Quad(quad) => hit_quad(ray_in, quad, tmin, tmax),
+        }
     }
 }
