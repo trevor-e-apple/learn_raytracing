@@ -4,7 +4,7 @@ use rand::{Rng, rngs::ThreadRng};
 
 use crate::{
     camera::{Camera, render},
-    hittables::Hittables,
+    hittables::{Hittable, Hittables},
     map::{CheckerData, ImageData},
     material::Material,
     perlin::Perlin,
@@ -75,7 +75,7 @@ fn bouncing_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
             z: 0.9,
         })),
     ))));
-    hittables.add_sphere(Sphere::new(
+    hittables.add_object(Hittable::Sphere(Sphere::new(
         Vector3 {
             x: 0.0,
             y: -1000.0,
@@ -83,7 +83,7 @@ fn bouncing_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
         },
         1000.0,
         material_ground,
-    ));
+    )));
 
     // Make a bunch of small spheres with different materials
     let small_sphere_radius = 0.2;
@@ -116,7 +116,7 @@ fn bouncing_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
                     materials.push(Material::Diffuse(map::Map::Color(albedo)));
 
                     // These spheres are falling
-                    hittables.add_sphere(Sphere::new_moving(
+                    hittables.add_object(Hittable::Sphere(Sphere::new_moving(
                         center,
                         center
                             + Vector3 {
@@ -126,7 +126,7 @@ fn bouncing_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
                             },
                         small_sphere_radius,
                         sphere_material,
-                    ));
+                    )));
                 } else if choose_mat < 0.95 {
                     // Metal
                     let albedo = Vector3 {
@@ -138,13 +138,21 @@ fn bouncing_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
                     let sphere_material = materials.len();
                     materials.push(Material::Metal(albedo, fuzz));
 
-                    hittables.add_sphere(Sphere::new(center, small_sphere_radius, sphere_material));
+                    hittables.add_object(Hittable::Sphere(Sphere::new(
+                        center,
+                        small_sphere_radius,
+                        sphere_material,
+                    )));
                 } else {
                     // Dielectric
                     let sphere_material = materials.len();
                     materials.push(Material::Dielectric(1.5));
 
-                    hittables.add_sphere(Sphere::new(center, small_sphere_radius, sphere_material));
+                    hittables.add_object(Hittable::Sphere(Sphere::new(
+                        center,
+                        small_sphere_radius,
+                        sphere_material,
+                    )));
                 }
             }
         }
@@ -154,7 +162,7 @@ fn bouncing_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
     {
         let material1 = materials.len();
         materials.push(Material::Dielectric(1.5));
-        hittables.add_sphere(Sphere::new(
+        hittables.add_object(Hittable::Sphere(Sphere::new(
             Vector3 {
                 x: 0.0,
                 y: 1.0,
@@ -162,7 +170,7 @@ fn bouncing_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
             },
             1.0,
             material1,
-        ));
+        )));
 
         let material2 = materials.len();
         materials.push(Material::Diffuse(map::Map::Color(Vector3 {
@@ -170,7 +178,7 @@ fn bouncing_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
             y: 0.2,
             z: 0.1,
         })));
-        hittables.add_sphere(Sphere::new(
+        hittables.add_object(Hittable::Sphere(Sphere::new(
             Vector3 {
                 x: -4.0,
                 y: 1.0,
@@ -178,7 +186,7 @@ fn bouncing_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
             },
             1.0,
             material2,
-        ));
+        )));
 
         let material3 = materials.len();
         materials.push(Material::Metal(
@@ -189,7 +197,7 @@ fn bouncing_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
             },
             0.0,
         ));
-        hittables.add_sphere(Sphere::new(
+        hittables.add_object(Hittable::Sphere(Sphere::new(
             Vector3 {
                 x: 4.0,
                 y: 1.0,
@@ -197,7 +205,7 @@ fn bouncing_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
             },
             1.0,
             material3,
-        ));
+        )));
     }
 
     (camera, materials, hittables, max_depth)
@@ -251,7 +259,7 @@ fn checkered_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
         })),
     ))));
 
-    hittables.add_sphere(Sphere::new(
+    hittables.add_object(Hittable::Sphere(Sphere::new(
         Vector3 {
             x: 0.0,
             y: -10.0,
@@ -259,8 +267,8 @@ fn checkered_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
         },
         10.0,
         checker,
-    ));
-    hittables.add_sphere(Sphere::new(
+    )));
+    hittables.add_object(Hittable::Sphere(Sphere::new(
         Vector3 {
             x: 0.0,
             y: 10.0,
@@ -268,7 +276,7 @@ fn checkered_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
         },
         10.0,
         checker,
-    ));
+    )));
 
     (camera, materials, hittables, max_depth)
 }
@@ -310,7 +318,7 @@ fn globe(file_path: &str) -> (Camera, Vec<Material>, Hittables, i32) {
     materials.push(Material::Diffuse(map::Map::Image(ImageData::new(
         file_path,
     ))));
-    hittables.add_sphere(Sphere::new(
+    hittables.add_object(Hittable::Sphere(Sphere::new(
         Vector3 {
             x: 0.0,
             y: 0.0,
@@ -318,7 +326,7 @@ fn globe(file_path: &str) -> (Camera, Vec<Material>, Hittables, i32) {
         },
         2.0,
         earth_texture,
-    ));
+    )));
 
     (camera, materials, hittables, max_depth)
 }
@@ -357,7 +365,7 @@ fn perlin_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
     let pertext = materials.len();
     materials.push(Material::Diffuse(map::Map::Noise(Perlin::new(), 4.0)));
 
-    hittables.add_sphere(Sphere::new(
+    hittables.add_object(Hittable::Sphere(Sphere::new(
         Vector3 {
             x: 0.0,
             y: -1000.0,
@@ -365,8 +373,8 @@ fn perlin_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
         },
         1000.0,
         pertext,
-    ));
-    hittables.add_sphere(Sphere::new(
+    )));
+    hittables.add_object(Hittable::Sphere(Sphere::new(
         Vector3 {
             x: 0.0,
             y: 2.0,
@@ -374,7 +382,7 @@ fn perlin_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
         },
         2.0,
         pertext,
-    ));
+    )));
 
     (camera, materials, hittables, max_depth)
 }

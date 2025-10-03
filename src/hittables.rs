@@ -201,7 +201,7 @@ impl Hittables {
                         }
                     }
                     BvhNode::Object(object_in) => {
-                        match hit_sphere(ray_in, sphere_in, tmin, closest) {
+                        match object_in.hit(ray_in, tmin, closest) {
                             Some(hit_record) => {
                                 if hit_record.t < closest {
                                     closest = hit_record.t;
@@ -238,7 +238,7 @@ fn bbox_from_objects(objects: &Vec<Hittable>) -> Aabb {
 }
 
 #[derive(Clone)]
-enum Hittable {
+pub enum Hittable {
     Sphere(Sphere),
     Quad(Quad),
 }
