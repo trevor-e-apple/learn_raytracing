@@ -21,11 +21,11 @@ pub struct Quad {
 impl Quad {
     pub fn new(q: Vector3, u: Vector3, v: Vector3, material: usize) -> Self {
         let bounding_box = Aabb::from_boxes(&Aabb::new(q, q + u + v), &Aabb::new(q + u, q + v));
-        let mut normal = calc_cross_product(&u, &v);
-        normal.normalize();
+        let n = calc_cross_product(&u, &v);
+        let normal = Vector3::calc_normalized_vector(&n);
 
         let d = Vector3::dot_product(&q, &normal);
-        let w = Vector3::dot_product(&normal, &normal) * &normal;
+        let w = (1.0 / Vector3::dot_product(&n, &n)) * n;
         Self {
             q,
             u,
@@ -48,7 +48,7 @@ pub fn hit_quad(ray_in: &Ray, quad_in: &Quad, tmin: f64, tmax: f64) -> Option<Hi
     }
 
     // Return false if the hit point parameter t is outside the interval
-    let t = (quad_in.d - Vector3::dot_product(&quad_in.normal, &ray_in.origin));
+    let t = (quad_in.d - Vector3::dot_product(&quad_in.normal, &ray_in.origin)) / denom;
     if (t > tmax) || (t < tmin) {
         return None;
     }

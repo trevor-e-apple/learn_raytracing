@@ -8,6 +8,7 @@ use crate::{
     map::{CheckerData, ImageData},
     material::Material,
     perlin::Perlin,
+    quad::Quad,
     sphere::Sphere,
     vector::Vector3,
 };
@@ -387,6 +388,169 @@ fn perlin_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
     (camera, materials, hittables, max_depth)
 }
 
+fn quads() -> (Camera, Vec<Material>, Hittables, i32) {
+    // Initialize camera
+    let camera = Camera::new(
+        Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 9.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 1.0,
+            z: 0.0,
+        },
+        0.0,
+        10.0,
+        1.0,
+        400,
+        80.0,
+        100,
+    );
+    let max_depth = 50;
+
+    let mut materials: Vec<Material> = vec![];
+    let mut hittables = Hittables::new();
+
+    let left_red = materials.len();
+    materials.push(Material::Diffuse(map::Map::Color(Vector3 {
+        x: 1.0,
+        y: 0.2,
+        z: 0.2,
+    })));
+
+    let back_green = materials.len();
+    materials.push(Material::Diffuse(map::Map::Color(Vector3 {
+        x: 0.2,
+        y: 1.0,
+        z: 0.2,
+    })));
+
+    let right_blue = materials.len();
+    materials.push(Material::Diffuse(map::Map::Color(Vector3 {
+        x: 0.2,
+        y: 0.2,
+        z: 1.0,
+    })));
+
+    let upper_orange = materials.len();
+    materials.push(Material::Diffuse(map::Map::Color(Vector3 {
+        x: 1.0,
+        y: 0.5,
+        z: 0.0,
+    })));
+
+    let lower_teal = materials.len();
+    materials.push(Material::Diffuse(map::Map::Color(Vector3 {
+        x: 0.2,
+        y: 0.8,
+        z: 0.8,
+    })));
+
+    hittables.add_object(Hittable::Quad(Quad::new(
+        Vector3 {
+            x: -3.0,
+            y: -2.0,
+            z: 5.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: -4.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 4.0,
+            z: 0.0,
+        },
+        left_red,
+    )));
+
+    hittables.add_object(Hittable::Quad(Quad::new(
+        Vector3 {
+            x: -2.0,
+            y: -2.0,
+            z: 0.0,
+        },
+        Vector3 {
+            x: 4.0,
+            y: 0.0,
+            z: 0.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 4.0,
+            z: 0.0,
+        },
+        back_green,
+    )));
+
+    hittables.add_object(Hittable::Quad(Quad::new(
+        Vector3 {
+            x: 3.0,
+            y: -2.0,
+            z: 1.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 4.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 4.0,
+            z: 0.0,
+        },
+        right_blue,
+    )));
+
+    hittables.add_object(Hittable::Quad(Quad::new(
+        Vector3 {
+            x: -2.0,
+            y: 3.0,
+            z: 1.0,
+        },
+        Vector3 {
+            x: 4.0,
+            y: 0.0,
+            z: 0.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 4.0,
+        },
+        upper_orange,
+    )));
+
+    hittables.add_object(Hittable::Quad(Quad::new(
+        Vector3 {
+            x: -2.0,
+            y: -3.0,
+            z: 5.0,
+        },
+        Vector3 {
+            x: 4.0,
+            y: 0.0,
+            z: 0.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: -4.0,
+        },
+        lower_teal,
+    )));
+
+    (camera, materials, hittables, max_depth)
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -404,8 +568,10 @@ fn main() {
     } else if scene == 2 {
         let earth_image_path = &args[2];
         globe(earth_image_path)
-    } else {
+    } else if scene == 3 {
         perlin_spheres()
+    } else {
+        quads()
     };
 
     // Render
