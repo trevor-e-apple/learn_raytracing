@@ -2,11 +2,11 @@ use rand::{Rng, rngs::ThreadRng};
 
 use crate::{
     hittables::Hittables,
-    material::{emit, scatter_ray, Material},
+    material::{Material, emit, scatter_ray},
     math::degrees_to_radians,
     ray::Ray,
     raytrace_vector::random_vector_in_unit_disk,
-    vector::{calc_cross_product, Vector3},
+    vector::{Vector3, calc_cross_product},
 };
 
 pub struct Camera {
@@ -174,7 +174,14 @@ pub fn render(
                     };
 
                     average_color = average_color
-                        + ray_color(&ray, hittables, &mut camera.rng, materials, camera.background, max_depth);
+                        + ray_color(
+                            &ray,
+                            hittables,
+                            &mut camera.rng,
+                            materials,
+                            camera.background,
+                            max_depth,
+                        );
                 }
 
                 average_color = camera.one_over_pixel_sample_count * average_color;
@@ -231,21 +238,37 @@ fn ray_color(
             ) {
                 Some((attenuation, reflected_ray)) => {
                     // Recursively look up color of the reflected ray
-                    let recursive_result =
-                        ray_color(&reflected_ray, hittables, rng, materials, background_color, max_depth - 1);
+                    let recursive_result = ray_color(
+                        &reflected_ray,
+                        hittables,
+                        rng,
+                        materials,
+                        background_color,
+                        max_depth - 1,
+                    );
                     let color_from_scatter = Vector3 {
                         x: recursive_result.x * attenuation.x,
                         y: recursive_result.y * attenuation.y,
                         z: recursive_result.z * attenuation.z,
                     };
 
-                    let color_from_emission = emit(material, closest_record.u, closest_record.v, closest_record.point);
+                    let color_from_emission = emit(
+                        material,
+                        closest_record.u,
+                        closest_record.v,
+                        closest_record.point,
+                    );
 
                     color_from_scatter + color_from_emission
                 }
                 None => {
                     // No scatter
-                    emit(material, closest_record.u, closest_record.v, closest_record.point)
+                    emit(
+                        material,
+                        closest_record.u,
+                        closest_record.v,
+                        closest_record.point,
+                    )
                 }
             }
         }

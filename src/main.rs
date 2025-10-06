@@ -55,7 +55,11 @@ fn bouncing_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
         image_width,
         20.0,
         100,
-        Vector3 { x: 0.70, y: 0.8, z: 1.00 }
+        Vector3 {
+            x: 0.70,
+            y: 0.8,
+            z: 1.00,
+        },
     );
     let max_depth = 50;
 
@@ -239,7 +243,11 @@ fn checkered_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
         image_width,
         20.0,
         100,
-        Vector3 { x: 0.70, y: 0.8, z: 1.00 }
+        Vector3 {
+            x: 0.70,
+            y: 0.8,
+            z: 1.00,
+        },
     );
     let max_depth = 50;
 
@@ -310,7 +318,11 @@ fn globe(file_path: &str) -> (Camera, Vec<Material>, Hittables, i32) {
         image_width,
         20.0,
         100,
-        Vector3 { x: 0.70, y: 0.8, z: 1.00 }
+        Vector3 {
+            x: 0.70,
+            y: 0.8,
+            z: 1.00,
+        },
     );
     let max_depth = 50;
 
@@ -359,7 +371,11 @@ fn perlin_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
         400,
         20.0,
         100,
-        Vector3 { x: 0.70, y: 0.8, z: 1.00 }
+        Vector3 {
+            x: 0.70,
+            y: 0.8,
+            z: 1.00,
+        },
     );
     let max_depth = 50;
 
@@ -416,7 +432,11 @@ fn quads() -> (Camera, Vec<Material>, Hittables, i32) {
         400,
         80.0,
         100,
-        Vector3 { x: 0.70, y: 0.8, z: 1.00 }
+        Vector3 {
+            x: 0.70,
+            y: 0.8,
+            z: 1.00,
+        },
     );
     let max_depth = 50;
 
@@ -556,6 +576,91 @@ fn quads() -> (Camera, Vec<Material>, Hittables, i32) {
     (camera, materials, hittables, max_depth)
 }
 
+fn simple_light() -> (Camera, Vec<Material>, Hittables, i32) {
+    let camera = Camera::new(
+        Vector3 {
+            x: 26.0,
+            y: 3.0,
+            z: 6.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 2.0,
+            z: 0.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 1.0,
+            z: 0.0,
+        },
+        0.0,
+        10.0,
+        16.0 / 9.0,
+        400,
+        20.0,
+        100,
+        Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        },
+    );
+    let max_depth = 50;
+
+    let mut materials: Vec<Material> = vec![];
+    let mut hittables = Hittables::new();
+
+    let pertext = materials.len();
+    materials.push(Material::Diffuse(map::Map::Noise(Perlin::new(), 4.0)));
+
+    let difflight = materials.len();
+    materials.push(Material::DiffuseLight(map::Map::Color(Vector3 {
+        x: 4.0,
+        y: 4.0,
+        z: 4.0,
+    })));
+
+    hittables.add_object(Hittable::Sphere(Sphere::new(
+        Vector3 {
+            x: 0.0,
+            y: -1000.0,
+            z: 0.0,
+        },
+        1000.0,
+        pertext,
+    )));
+    hittables.add_object(Hittable::Sphere(Sphere::new(
+        Vector3 {
+            x: 0.0,
+            y: 2.0,
+            z: 0.0,
+        },
+        2.0,
+        pertext,
+    )));
+
+    hittables.add_object(Hittable::Quad(Quad::new(
+        Vector3 {
+            x: 3.0,
+            y: 1.0,
+            z: -2.0,
+        },
+        Vector3 {
+            x: 2.0,
+            y: 0.0,
+            z: 0.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 2.0,
+            z: 0.0,
+        },
+        difflight,
+    )));
+
+    (camera, materials, hittables, max_depth)
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -575,8 +680,10 @@ fn main() {
         globe(earth_image_path)
     } else if scene == 3 {
         perlin_spheres()
-    } else {
+    } else if scene == 4 {
         quads()
+    } else {
+        simple_light()
     };
 
     // Render

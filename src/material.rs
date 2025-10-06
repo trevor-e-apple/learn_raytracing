@@ -110,18 +110,18 @@ pub fn scatter_ray(
             };
             Some((attenuation, scattered_ray))
         }
-        Material::DiffuseLight(_) => {            
-            None
-        }
+        Material::DiffuseLight(_) => None,
     }
 }
 
 pub fn emit(emitting_material: &Material, u: f64, v: f64, p: Vector3) -> Vector3 {
     match emitting_material {
-        Material::DiffuseLight(map) => {
-            get_map_value(map, u, v, p)
+        Material::DiffuseLight(map) => get_map_value(map, u, v, p),
+        _ => Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
         },
-        _ => Vector3 { x: 0.0, y: 0.0, z: 0.0 },
     }
 }
 
