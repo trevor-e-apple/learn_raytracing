@@ -8,9 +8,10 @@ use crate::{
 };
 
 pub enum Material {
-    Diffuse(map::Map),   // albedo
+    Diffuse(map::Map),
     Metal(Vector3, f64), // albedo, fuzz radius
     Dielectric(f64),     // The ratio of the enclosed media's eta to the enclosing media's eta
+    DiffuseLight(map::Map),
 }
 
 /// Scatter a ray off of a material.
@@ -109,6 +110,18 @@ pub fn scatter_ray(
             };
             Some((attenuation, scattered_ray))
         }
+        Material::DiffuseLight(_) => {            
+            None
+        }
+    }
+}
+
+pub fn emit(emitting_material: &Material, u: f64, v: f64, p: Vector3) -> Vector3 {
+    match emitting_material {
+        Material::DiffuseLight(map) => {
+            get_map_value(map, u, v, p)
+        },
+        _ => Vector3 { x: 0.0, y: 0.0, z: 0.0 },
     }
 }
 

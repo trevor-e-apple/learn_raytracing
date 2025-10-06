@@ -55,6 +55,7 @@ fn bouncing_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
         image_width,
         20.0,
         100,
+        Vector3 { x: 0.70, y: 0.8, z: 1.00 }
     );
     let max_depth = 50;
 
@@ -238,6 +239,7 @@ fn checkered_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
         image_width,
         20.0,
         100,
+        Vector3 { x: 0.70, y: 0.8, z: 1.00 }
     );
     let max_depth = 50;
 
@@ -308,6 +310,7 @@ fn globe(file_path: &str) -> (Camera, Vec<Material>, Hittables, i32) {
         image_width,
         20.0,
         100,
+        Vector3 { x: 0.70, y: 0.8, z: 1.00 }
     );
     let max_depth = 50;
 
@@ -356,6 +359,7 @@ fn perlin_spheres() -> (Camera, Vec<Material>, Hittables, i32) {
         400,
         20.0,
         100,
+        Vector3 { x: 0.70, y: 0.8, z: 1.00 }
     );
     let max_depth = 50;
 
@@ -412,6 +416,7 @@ fn quads() -> (Camera, Vec<Material>, Hittables, i32) {
         400,
         80.0,
         100,
+        Vector3 { x: 0.70, y: 0.8, z: 1.00 }
     );
     let max_depth = 50;
 

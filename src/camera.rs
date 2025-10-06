@@ -2,11 +2,11 @@ use rand::{Rng, rngs::ThreadRng};
 
 use crate::{
     hittables::Hittables,
-    material::{Material, scatter_ray},
+    material::{emit, scatter_ray, Material},
     math::degrees_to_radians,
     ray::Ray,
     raytrace_vector::random_vector_in_unit_disk,
-    vector::{Vector3, calc_cross_product},
+    vector::{calc_cross_product, Vector3},
 };
 
 pub struct Camera {
@@ -26,6 +26,8 @@ pub struct Camera {
     defocus_disk_v: Vector3,
     focus_distance: f64, // Distance from the camera center to the plane of perfect focus
 
+    background: Vector3, // Background color of scene when no objects are hit
+
     rng: ThreadRng,
 }
 
@@ -40,6 +42,7 @@ impl Camera {
         image_width: i32,
         vfov: f64,
         pixel_sample_count: i32,
+        background: Vector3,
     ) -> Self {
         let image_height = {
             // Calculate the image height using the aspect ratio
@@ -109,6 +112,7 @@ impl Camera {
             defocus_disk_u,
             defocus_disk_v,
             focus_distance,
+            background,
         }
     }
 }
@@ -170,7 +174,7 @@ pub fn render(
                     };
 
                     average_color = average_color
-                        + ray_color(&ray, hittables, &mut camera.rng, materials, max_depth);
+                        + ray_color(&ray, hittables, &mut camera.rng, materials, camera.background, max_depth);
                 }
 
                 average_color = camera.one_over_pixel_sample_count * average_color;
@@ -195,6 +199,7 @@ fn ray_color(
     hittables: &mut Hittables,
     rng: &mut ThreadRng,
     materials: &Vec<Material>,
+    background_color: Vector3,
     max_depth: i32,
 ) -> Vector3 {
     if max_depth <= 0 {
@@ -227,42 +232,26 @@ fn ray_color(
                 Some((attenuation, reflected_ray)) => {
                     // Recursively look up color of the reflected ray
                     let recursive_result =
-                        ray_color(&reflected_ray, hittables, rng, materials, max_depth - 1);
-                    Vector3 {
+                        ray_color(&reflected_ray, hittables, rng, materials, background_color, max_depth - 1);
+                    let color_from_scatter = Vector3 {
                         x: recursive_result.x * attenuation.x,
                         y: recursive_result.y * attenuation.y,
                         z: recursive_result.z * attenuation.z,
-                    }
+                    };
+
+                    let color_from_emission = emit(material, closest_record.u, closest_record.v, closest_record.point);
+
+                    color_from_scatter + color_from_emission
                 }
                 None => {
-                    // Ray was absorbed
-                    Vector3 {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 0.0,
-                    }
+                    // No scatter
+                    emit(material, closest_record.u, closest_record.v, closest_record.point)
                 }
             }
         }
         None => {
-            // Create a background color
-            let unit_vector = Vector3::calc_normalized_vector(&ray_in.direction);
-
-            let white = Vector3 {
-                x: 1.0,
-                y: 1.0,
-                z: 1.0,
-            };
-            let blue = Vector3 {
-                x: 0.5,
-                y: 0.7,
-                z: 1.0,
-            };
-
-            let lerp_value = (unit_vector.y + 1.0) / 2.0; // Y value has a range of -1.0 to 1.0, and we map that to 0.0 to 1.0 
-            let blended = (1.0 - lerp_value) * white + lerp_value * blue;
-
-            blended
+            // If the ray hits nothing, return the background color
+            background_color
         }
     }
 }
