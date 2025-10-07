@@ -82,3 +82,52 @@ pub fn hit_quad(ray_in: &Ray, quad_in: &Quad, tmin: f64, tmax: f64) -> Option<Hi
         v,
     ))
 }
+
+pub fn new_parallelpiped(a: &Vector3, b: &Vector3, material: usize) -> [Quad; 6] {
+    let sides = core::array::from_fn(|_| Quad {
+        q: Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        },
+        u: Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        },
+        v: Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        },
+        normal: Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        },
+        material: 0,
+        bounding_box: Aabb {
+            x0: 0.0,
+            x1: 0.0,
+            y0: 0.0,
+            y1: 0.0,
+            z0: 0.0,
+            z1: 0.0,
+        },
+        w: Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        },
+        d: 0.0,
+    });
+
+    // Construct
+    let min = Vector3 {
+        x: f64::min(a.x, b.x),
+        y: f64::min(a.y, b.y),
+        z: f64::min(a.z, b.z),
+    };
+
+    sides
+}
