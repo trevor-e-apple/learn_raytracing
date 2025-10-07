@@ -661,6 +661,180 @@ fn simple_light() -> (Camera, Vec<Material>, Hittables, i32) {
     (camera, materials, hittables, max_depth)
 }
 
+fn cornell_box() -> (Camera, Vec<Material>, Hittables, i32) {
+    let camera = Camera::new(
+        Vector3 {
+            x: 278.0,
+            y: 278.0,
+            z: -800.0,
+        },
+        Vector3 {
+            x: 278.0,
+            y: 278.0,
+            z: 0.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 1.0,
+            z: 0.0,
+        },
+        0.0,
+        10.0,
+        1.0,
+        600,
+        40.0,
+        200,
+        Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        },
+    );
+    let max_depth = 50;
+
+    let mut materials: Vec<Material> = vec![];
+    let mut hittables = Hittables::new();
+
+    let red = materials.len();
+    materials.push(Material::Diffuse(map::Map::Color(Vector3 {
+        x: 0.65,
+        y: 0.05,
+        z: 0.05,
+    })));
+
+    let white = materials.len();
+    materials.push(Material::Diffuse(map::Map::Color(Vector3 {
+        x: 0.73,
+        y: 0.73,
+        z: 0.73,
+    })));
+
+    let green = materials.len();
+    materials.push(Material::Diffuse(map::Map::Color(Vector3 {
+        x: 0.12,
+        y: 0.45,
+        z: 0.15,
+    })));
+
+    let light = materials.len();
+    materials.push(Material::DiffuseLight(map::Map::Color(Vector3 {
+        x: 15.0,
+        y: 15.0,
+        z: 15.0,
+    })));
+
+    hittables.add_object(Hittable::Quad(Quad::new(
+        Vector3 {
+            x: 555.0,
+            y: 0.0,
+            z: 0.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 555.0,
+            z: 0.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 555.0,
+        },
+        green,
+    )));
+    hittables.add_object(Hittable::Quad(Quad::new(
+        Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 555.0,
+            z: 0.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 555.0,
+        },
+        red,
+    )));
+    hittables.add_object(Hittable::Quad(Quad::new(
+        Vector3 {
+            x: 343.0,
+            y: 554.0,
+            z: 332.0,
+        },
+        Vector3 {
+            x: -130.0,
+            y: 0.0,
+            z: 0.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: -105.0,
+        },
+        light,
+    )));
+    hittables.add_object(Hittable::Quad(Quad::new(
+        Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        },
+        Vector3 {
+            x: 555.0,
+            y: 0.0,
+            z: 0.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 555.0,
+        },
+        white,
+    )));
+    hittables.add_object(Hittable::Quad(Quad::new(
+        Vector3 {
+            x: 555.0,
+            y: 555.0,
+            z: 555.0,
+        },
+        Vector3 {
+            x: -555.0,
+            y: 0.0,
+            z: 0.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: -555.0,
+        },
+        white,
+    )));
+    hittables.add_object(Hittable::Quad(Quad::new(
+        Vector3 {
+            x: 0.0,
+            y: 0.0,
+            z: 555.0,
+        },
+        Vector3 {
+            x: 555.0,
+            y: 0.0,
+            z: 0.0,
+        },
+        Vector3 {
+            x: 0.0,
+            y: 555.0,
+            z: 0.0,
+        },
+        white,
+    )));
+
+    (camera, materials, hittables, max_depth)
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -682,8 +856,10 @@ fn main() {
         perlin_spheres()
     } else if scene == 4 {
         quads()
-    } else {
+    } else if scene == 5 {
         simple_light()
+    } else {
+        cornell_box()
     };
 
     // Render
