@@ -84,7 +84,7 @@ pub fn hit_quad(ray_in: &Ray, quad_in: &Quad, tmin: f64, tmax: f64) -> Option<Hi
 }
 
 pub fn new_parallelpiped(a: &Vector3, b: &Vector3, material: usize) -> [Quad; 6] {
-    let sides = core::array::from_fn(|_| Quad {
+    let mut sides = core::array::from_fn(|_| Quad {
         q: Vector3 {
             x: 0.0,
             y: 0.0,
@@ -128,6 +128,34 @@ pub fn new_parallelpiped(a: &Vector3, b: &Vector3, material: usize) -> [Quad; 6]
         y: f64::min(a.y, b.y),
         z: f64::min(a.z, b.z),
     };
+    let max = Vector3 {
+        x: f64::max(a.x, b.x),
+        y: f64::max(a.y, b.y),
+        z: f64::max(a.z, b.z),
+    };
+
+    let dx = Vector3 {
+        x: max.x - min.x,
+        y: 0.0,
+        z: 0.0,
+    };
+    let dy = Vector3 {
+        x: 0.0,
+        y: max.y - min.y,
+        z: 0.0,
+    };
+    let dz = Vector3 {
+        x: 0.0,
+        y: 0.0,
+        z: max.z - min.z,
+    };
+
+    sides[0] = Quad::new(Vector3 { x: min.x, y: min.y, z: max.z }, dx, dy, material);
+    sides[1] = Quad::new(Vector3 { x: max.x, y: min.y, z: max.z }, -1.0 * dz, dy, material);
+    sides[2] = Quad::new(Vector3 { x: max.x, y: min.y, z: min.z }, -1.0 * dx, dy, material);
+    sides[3] = Quad::new(Vector3 { x: min.x, y: min.y, z: min.z }, dz, dy, material);
+    sides[4] = Quad::new(Vector3 { x: min.x, y: max.y, z: max.z }, dx, -1.0 * dz, material);
+    sides[5] = Quad::new(Vector3 { x: min.x, y: min.y, z: min.z }, dx, dz, material);
 
     sides
 }

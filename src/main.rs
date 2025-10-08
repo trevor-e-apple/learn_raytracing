@@ -8,7 +8,7 @@ use crate::{
     map::{CheckerData, ImageData},
     material::Material,
     perlin::Perlin,
-    quad::Quad,
+    quad::{Quad, new_parallelpiped},
     sphere::Sphere,
     vector::Vector3,
 };
@@ -831,6 +831,37 @@ fn cornell_box() -> (Camera, Vec<Material>, Hittables, i32) {
         },
         white,
     )));
+
+    for side in new_parallelpiped(
+        &Vector3 {
+            x: 130.0,
+            y: 0.0,
+            z: 65.0,
+        },
+        &Vector3 {
+            x: 295.0,
+            y: 165.0,
+            z: 230.0,
+        },
+        white,
+    ) {
+        hittables.add_object(Hittable::Quad(side));
+    }
+    for side in new_parallelpiped(
+        &Vector3 {
+            x: 265.0,
+            y: 0.0,
+            z: 295.0,
+        },
+        &Vector3 {
+            x: 430.0,
+            y: 330.0,
+            z: 460.0,
+        },
+        white,
+    ) {
+        hittables.add_object(Hittable::Quad(side));
+    }
 
     (camera, materials, hittables, max_depth)
 }
